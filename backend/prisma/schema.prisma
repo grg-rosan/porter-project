@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User => Order
+
+enum OrderStatus {
+  PENDING
+  ASSIGNED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+enum VehicleType {
+  BIKE
+  SCOOTER
+  VAN
+  MINI_TRUCK
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum Role {
+  CUSTOMER
+  Rider
+  ADMIN
+}
+
+model User {
+  userID   String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  role     Role
+
+  createdAt DateTime @default(now())
+
+  //relationship 
+  riderProfile    RiderProfile?
+  customerProfile CustomerProfile?
+}
+
+model RiderProfile {
+  riderID String @id @default(uuid())
+  userID  String @unique
+
+  vehicle_type     String
+  available_status Boolean
+  location         String
+
+  user   User    @relation(fields: [userID], references: [userID])
+  orders Order[]
+}
+
+model CustomerProfile {
+  customerID String @id @default(uuid())
+  userID     String @unique
+
+  address String?
+
+  user User @relation(fields: [userID], references: [userID])
+
+  orders Order[]
+}
+
+model Order {
+  ID Int @id @default(autoincrement())
+
+  //for relation foreign key
+  customerID String
+  riderID    String?
+
+  pickup_address String
+  drop_address   String
+  vehicle_type   VehicleType
+  order_status   OrderStatus   @default(PENDING)
+  order_weight   Float
+  total_amount   Float
+  payment_status PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relationship
+  customerProfile CustomerProfile @relation(fields: [customerID], references: [customerID])
+  riderProfile    RiderProfile?   @relation(fields: [riderID], references: [riderID])
+
+  payment      Payment[]
+  notification Notification[]
+}
+
+model Payment {
+  ID      Int    @id @default(autoincrement())
+  orderID Int
+  amount  Float
+  method  String
+  status  String
+
+  order Order @relation(fields: [orderID], references: [ID])
+}
+
+model Notification {
+  ID      Int    @id @default(autoincrement())
+  orderID Int
+  message String
+  type    String
+
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderID], references: [ID])
+}
