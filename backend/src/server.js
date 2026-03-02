@@ -7,6 +7,8 @@ import {connectDB, disconnectDB} from  "./config/db.config.js"
 import authRoutes from "./routes/authRoutes.js"
 import customerRoutes from "./routes/customerRoute.js"
 import  riderRoute from "./routes/riderRoute.js"
+import cookieparser from "cookie-parser";
+
 // import { getOrderController } from "./controllers/getOrderController.js";
 
 
@@ -22,8 +24,11 @@ app.use(cors({
   credentials: true
 }));
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieparser());
+
 
 //API routes
 app.use("/api/auth",authRoutes)

@@ -6,6 +6,7 @@ export const getAPI = async (endpoint, method, body = null) => {
     headers: {
       'Content-Type': 'application/json', // Specify content type for JSON body
     },
+    Credential:"include",
   };
 
   if (body) {
@@ -19,6 +20,6 @@ export const getAPI = async (endpoint, method, body = null) => {
   if (!response.ok) {
     throw new Error(data.message || 'API request failed');
   }
-
+  console.log(data)
   return data;
 };

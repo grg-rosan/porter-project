@@ -69,6 +69,7 @@ const register = async (req, res) => {
 //  jwt login authentication
 const logIn = async (req, res) => {
   const { email, password } = req.body;
+  console.log(email, password)
 
   const user = await prisma.user.findUnique({
     where: { email: email },
@@ -79,13 +80,14 @@ const logIn = async (req, res) => {
   }
   //verify password
   const validPassword = await bcrypt.compare(password, user.password);
-
+  console.log(validPassword)
   if (!validPassword) {
     return res.status(401).json({ error: "Invalid password or email" });
   }
 
   //generate jwt token
   const token = generateToken(user.userID, res);
+  console.log(token)
 
   res.status(201).json({
     status: "success",
