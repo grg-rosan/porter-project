@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../config/db.config.js";
+import { prisma } from "../../config/db.config.js";
 
 //read the token form the request
 //check if the token is valid
@@ -21,10 +21,10 @@ export const authMiddleware = async (req, res, next) => {
   //<<-----verify if user exists ------->
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.id) {
-      return res.status(401).json({ error: "Invalid token payload" });
-    }
 
+    if (!decoded.id) {
+      throw new Error("Invalid token payload" );
+    }
     const user = await prisma.user.findUnique({
       where: { userID: decoded.id },
     });
@@ -34,6 +34,8 @@ export const authMiddleware = async (req, res, next) => {
     req.user = user;
     next();
   } catch (e) {
-    return res.status(401).json({ error: "not authorized, token failed" });
+      return res.status(401).json({
+      message: "Not authorized, token failed",
+    });
   }
 };

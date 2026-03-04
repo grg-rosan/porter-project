@@ -1,68 +1,30 @@
-import express from "express";
-import cors from "cors"
-import {config} from "dotenv";
-import {connectDB, disconnectDB} from  "./config/db.config.js"
+import http from "http"
+import { Server as socketIOServer} from "socket.io"
+import app from "./app.js";
 
-//Import user Routes
-import authRoutes from "./routes/authRoutes.js"
-import customerRoutes from "./routes/customerRoute.js"
-import  riderRoute from "./routes/riderRoute.js"
-import cookieparser from "cookie-parser";
-
-// import { getOrderController } from "./controllers/getOrderController.js";
-
-
-config();
-connectDB();
-
-
-const app = express();
 const port = 3000;
 
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}));
+//create raw http server from express
+const server = http.createServer(app);
 
+//initilize socket io
+const io = new socketIOServer(server, {
+    cors:{
+        origin:"http://localhost:5173",
+        credentials:true
+    }
+})
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieparser());
+//listen for connection
+io.on("connection", (socket) => {
+    console.log("A user connected", socket.id);
 
-
-//API routes
-app.use("/api/auth",authRoutes)
-app.use("/api/customer",customerRoutes)
-  
-app.use("/api/rider",riderRoute)
-
-
-
+    socket.on("disconnect",()=>{
+        console.log("user disconnected", socket.id)
+    })
+})
 app.listen(port,()=>{
     console.log(`listening to port ${port}`)
 })
 
-// Handle unhandled promise rejections (e.g., database connection errors)
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  server.close(async () => {
-    await disconnectDB();
-    process.exit(1);
-  });
-});
-
-// Handle uncaught exceptions
-process.on("uncaughtException", async (err) => {
-  console.error("Uncaught Exception:", err);
-  await disconnectDB();
-  process.exit(1);
-});
-
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully");
-  server.close(async () => {
-    await disconnectDB();
-    process.exit(0);
-  });
-});
+export {server, io}

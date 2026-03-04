@@ -6,7 +6,7 @@ export const getAPI = async (endpoint, method, body = null) => {
     headers: {
       'Content-Type': 'application/json', // Specify content type for JSON body
     },
-    Credential:"include",
+    credentials: "include"
   };
 
   if (body) {

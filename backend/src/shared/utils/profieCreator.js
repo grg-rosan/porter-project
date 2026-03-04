@@ -1,4 +1,4 @@
-import { prisma } from "../config/db.config.js";
+import { prisma } from "../../config/db.config.js";
 
 const createCustomerProfile = async (userID, data) => {
   return await prisma.customerProfile.create({
