@@ -1,3 +1,18 @@
+4. Real architecture used in Porter 
+
+Typical stack:
+
+Feature	    Technology
+Main DB	    PostgreSQL
+ORM	        Prisma
+Realtime	Socket.io
+Cache	    Redis
+Queue	    RabbitMQ / Kafka
+Location	Redis / Mongo
+API	        Node.js
+
+
+
 localhost:3000 -----> this is where the server runs
 
 baseURL/api/auth/register -----> register a user "could be a rider or a customer"

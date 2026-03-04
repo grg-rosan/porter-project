@@ -1,5 +1,5 @@
-import { haversine } from "../utils/harversine.js";
+import { haversine } from "../shared/utils/harversine.js";
 
-export function calculateDistance(pickup_address,drop_address){
-    return haversine(pickup_address, drop_address)
+export function calculateDistance(pickupLoc, dropLoc){
+    return haversine(pickupLoc, dropLoc)
 }
