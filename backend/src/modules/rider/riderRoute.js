@@ -1,14 +1,18 @@
-// import express from "express";
-// import { authMiddleware } from "../shared/middleware/authmiddleware.js";
-// import { roleMiddleware } from "../../shared/middleware/rolemiddleware.js";
-// // import { getOrderController } from "../controllers/getOrderController.js";
+import express from "express"
+import { authMiddleware } from "../auth/auth.middleware"
+import { roleMiddleware } from "../../shared/middleware/rolemiddleware"
+import { getRiderProfile, updateAvailability } from "./rider.controller"
 
-// const router = express.Router();
+const router = express.Router()
 
-// router.use(authMiddleware)
+router.use(authMiddleware)
+router.use(roleMiddleware("RIDER"))
 
-// //rider routes
-// // router.get('/',roleMiddleware("RIDER"),getOrderController)
+// get rider profile
+router.get("/profile", getRiderProfile)
+// api/rider/profile
 
+router.patch("/availability", updateAvailability)
+// api/rider/availability
 
-// export default router;
+export default router

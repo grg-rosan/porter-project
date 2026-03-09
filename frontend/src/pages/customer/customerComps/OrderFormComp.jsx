@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 //27.7103° N, 85.3222° E ktm
 //28.2096° N, 83.9856° pokh
-const OrderFormComp = ({ onOrder }) => {
+const OrderFormComp = ({ onSubmit }) => {
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropAddress, setDropAddress] = useState('')
   const [weight, setWeight] = useState('');
@@ -10,7 +10,7 @@ const OrderFormComp = ({ onOrder }) => {
 const handleData = (e) => {
   e.preventDefault();
 
-  onOrder({
+  onSubmit({
     pickup_address: pickupAddress,
     drop_address: dropAddress,
     order_weight: Number(weight),

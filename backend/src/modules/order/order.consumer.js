@@ -1,8 +1,8 @@
 import { consumeMessage } from "../../infrastructure/rabbitmq/subscriber.js";
 
 consumeMessage(
-  "notification_exchange",
-  "order.success",
+  "orders",
+  "order.created",
   "order_queue",
   (message) => {
     console.log("Received order message:", message);

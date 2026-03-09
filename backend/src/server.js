@@ -23,7 +23,7 @@ io.on("connection", (socket) => {
         console.log("user disconnected", socket.id)
     })
 })
-app.listen(port,()=>{
+server.listen(port,()=>{
     console.log(`listening to port ${port}`)
 })
 

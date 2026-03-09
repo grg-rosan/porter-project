@@ -6,7 +6,7 @@ import {connectDB, disconnectDB} from  "./config/db.config.js"
 //Import user Routes
 import authRoutes from "./modules/auth/auth.route.js"
 import customerRouter from "./modules/customer/customer.route.js";
-// import  riderRoute from "./modules/rider/riderRoute.js"
+import  riderRoute from "./modules/rider/riderRoute.js"
 import cookieParser from "cookie-parser";
 
 config();
@@ -28,7 +28,7 @@ app.use(cookieParser());
 //API routes
 app.use("/api/auth",authRoutes)
 app.use("/api/customer",customerRouter)
-// app.use("/api/rider",riderRoute)
+app.use("/api/rider",riderRoute)
 
 
 // Handle unhandled promise rejections (e.g., database connection errors)

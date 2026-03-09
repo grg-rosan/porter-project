@@ -6,7 +6,7 @@ let channel = null;
 export const connectRabbitMq = async()  => {
     try {
         if( connection && channel) return {connection,channel}
-        connection = await ampq.connect("amqp;//localhost");
+        connection = await amqp.connect("amqp://localhost");// move this url to .env file
         channel = await connection.createChannel()
 
         console.log("rabbitmq connected successfully")
@@ -24,5 +24,9 @@ export const closeRabbitMQ = async () => {
     console.log("RabbitMQ connection closed");
   } catch (error) {
     console.error("RabbitMQ closing error:", error.message);
+  }
+  finally{
+    connection = null;
+    channel = null
   }
 };

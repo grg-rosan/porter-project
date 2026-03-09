@@ -3,15 +3,14 @@ import { geoCode } from "../location/searchLocation.js";
 import { calculateDistance } from "../../services/dstance.service.js";
 import { calculateFare } from "../../services/pricing.service.js";
 import { getSurgeMultiplier } from "../../services/surge.service.js";
-// import orderMessageProducer from "./order.prducer.js";
 
 const createOrder = async (orderData) => {
   try {
-    const { pickup_address, drop_address, order_weight, vehicle_type } =
+    const { pickup_address, drop_address, order_weight, vehicle_type, userID } =
       orderData;
 
     const customerProfile = await prisma.customerProfile.findUnique({
-      where: { userID: req.user.userID },
+      where: { userID },
     });
 
     if (!customerProfile) {
@@ -19,8 +18,8 @@ const createOrder = async (orderData) => {
     }
 
     //get lat and lng form geocode
-    const pickupLoc = await geoCode(pickup_address);
-    const dropLoc = await geoCode(drop_address);
+    // 2. Geocode both addresses in parallel
+ 
     //If your geocoding service supports batch requests,
     //you could optimize further by sending both addresses in one API call.
     const distance = calculateDistance(pickupLoc, dropLoc);
@@ -44,7 +43,7 @@ const createOrder = async (orderData) => {
         total_amount: fare,
       },
     });
-    // orderMessageProducer(order)
+  
     return order;
   } catch (error) {
     throw new Error("Order creation failed: " + error.message);

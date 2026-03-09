@@ -1,42 +1,33 @@
-import React, { useState } from "react";
-import OrderFormComp from "../components/dashboardComps/OrderFormComp";
-import Map from "../components/dashboardComps/MapComp";
-import { getAPI } from "../api/api";
-
-
+// DashBoard.jsx — redirect based on role
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const DashBoard = () => {
-  const [isOrder, setIsOrder] = useState(false);
-  const [error, setError] = useState('')
+    const { user } = useAuth()
+    const navigate = useNavigate()
 
-  const toggle_create_order = () => {
-    setIsOrder((toggle) => !toggle);
-  };
+    useEffect(() => {
+        if (user?.role === 'customer') navigate('/customer', { replace: true })
+        if (user?.role === 'rider') navigate('/rider', { replace: true })
+    }, [user, navigate])
 
-  const handle_order = async (orderData) => {
-    try {
-      const data = await getAPI("customer/create-order", "POST", orderData)
-      setError('')
-      if(!data.status){
-        setError(data.message || "order creation failed")
-        return;
-      }
-      console.log("order-creation successful",data);
-    } catch (error) {
-      console.log(error)
-      setError("something went wrong")
-    }
-  };
-  return (
-    <div>
-      <Map />
-      <button onClick={toggle_create_order}>Create Order</button>
-      {isOrder && (
-        <OrderFormComp onOrder={handle_order} />
-      )}
-    </div>
-  );
-};
+    return <div>Redirecting...</div>
+}
 
-export default DashBoard;
-//api/customer/create-order
+export default DashBoard
+// ```
+
+// ---
+
+// ## Flow
+// ```
+// login → data.user.role = 'customer'
+//     ↓
+// navigate('/dashboard')
+//     ↓
+// Dashboard sees role → navigate('/customer')
+//     ↓
+// ProtectedRoute checks role === 'customer' ✅
+//     ↓
+// CustomerPage renders

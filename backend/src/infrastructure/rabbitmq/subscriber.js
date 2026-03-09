@@ -2,10 +2,10 @@ import { connectRabbitMq } from "./connection.js";
 
 export const consumeMessage = async (exchange, routingKey, queue, callback) => {
   try {
-    const { channel } = connectRabbitMq();
+    const { channel } = await connectRabbitMq();
 
     await channel.assertExchange(exchange, "topic", { durable: true });
-    await channel.asserQueue(queue, { durable: true });
+    await channel.assertQueue(queue, { durable: true });
 
     await channel.bindQueue(queue, exchange, routingKey);
     console.log(`📥 Waiting for messages in queue: ${queue}`);

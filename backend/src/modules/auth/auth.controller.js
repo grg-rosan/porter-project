@@ -10,8 +10,8 @@ async function register(req, res) {
       data: {
         user: {
           id: user.userID,
-          name: name,
-          email: email,
+          name: user.name,
+          email: user.email,
         },
       },
     });
@@ -34,7 +34,7 @@ async function login(req, res) {
     const token = generateToken(user.userID);
     console.log(token);
 
-    res.cookie("jwt", token, {
+    res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -47,6 +47,7 @@ async function login(req, res) {
         user: {
           id: user.userID,
           email: user.email,
+          role: user.role.toLocaleLowerCase()
         },
         // do not show token here because it is aready saved in cookie in generateToken funciton
         token,

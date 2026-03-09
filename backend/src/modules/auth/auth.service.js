@@ -10,16 +10,13 @@ const registerUser = async (userData) => {
   try {
     const { name, email, password, role } = userData;
 
-    console.log("BODY:", req.body);
-    console.log("NAME:", name);
-
     //check if user exists
     const userExists = await prisma.user.findUnique({
       where: { email: email },
     });
 
     if (userExists) {
-      return res.status(400).json({ error: "User already exists" });
+      throw new Error("user already exists")
     }
     //hash password
     const salt = await bcrypt.genSalt(10);
@@ -36,14 +33,15 @@ const registerUser = async (userData) => {
     });
     //Create profile based on role
     if (role === "CUSTOMER") {
-      await createCustomerProfile(user.userID, req.body);
+      await createCustomerProfile(user.userID, userData);
     } else if (role === "RIDER") {
-      await createRiderProfile(user.userID, req.body);
+      await createRiderProfile(user.userID, userData);
     }
 
     return user;
   } catch (error) {
     console.error(error);
+    throw new Error("Registration failed: " + error.message)
   }
 };
 
