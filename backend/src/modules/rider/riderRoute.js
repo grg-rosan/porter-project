@@ -1,7 +1,7 @@
 import express from "express"
 import { authMiddleware } from "../auth/auth.middleware"
 import { roleMiddleware } from "../../shared/middleware/rolemiddleware"
-import { getRiderProfile, updateAvailability } from "./rider.controller"
+import { getRiderProfile, tripHistory, updateAvailability } from "./rider.controller"
 
 const router = express.Router()
 
@@ -15,4 +15,11 @@ router.get("/profile", getRiderProfile)
 router.patch("/availability", updateAvailability)
 // api/rider/availability
 
+router.get("/trips/history",tripHistory)
+
 export default router
+
+// GET /api/trips/history             // all trips
+// GET /api/trips/history?filter=daily
+// GET /api/trips/history?filter=weekly
+// GET /api/trips/history?filter=monthly
