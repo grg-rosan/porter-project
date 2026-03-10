@@ -1,7 +1,7 @@
-import createOrder  from "./order.service.js";
-import orderMessageProducer from "./order.prducer.js";
+import {cancel_Order, createOrder}  from "./order.service.js";
+import orderMessageProducer from "./order.producer.js";
 
-async function order_create(req, res) {
+export const order_create=  async(req, res) => {
   try {
     const order = await createOrder({...req.body, userID:req.user.userID});
 
@@ -24,4 +24,12 @@ async function order_create(req, res) {
       res.status(500).json({ status: "error", message: error.message });
   }
 }
-export { order_create };
+export const cancelOrder = async(req, res) => {
+  try{
+    const orderID = parseInt(req.params.orderID)
+    const order = await cancel_Order(orderID)
+    res.json({status: "success",  data: order})
+  }catch(error){
+    res.status(500).json({status:"error",message: error.message})
+  }
+}

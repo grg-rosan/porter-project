@@ -1,0 +1,52 @@
+Here's a solid feature set for your Porter app, organized by user type:
+
+**Customer Features**
+- Book a delivery (pickup & drop location with map) -done
+- Choose vehicle type based on load size (bike, auto, mini truck, large truck) --done
+- Real-time driver/porter tracking on map --done needs checking
+- Fare estimate before booking
+- Schedule deliveries in advance
+- Order history & receipts --done
+- Rate and review porter
+- Multiple payment options (cash, card, wallet)
+- Cancel/reschedule booking  --done
+
+**Porter (Driver) Features**
+- Accept/reject delivery requests 
+- Navigation to pickup and drop location --done needs checking
+- Earnings dashboard (daily/weekly/monthly) 
+- Trip history --done
+- Online/offline toggle --done not sure
+- Document upload (license, vehicle registration)
+- Withdrawal requests
+
+---
+
+**Business Features**
+- Bulk booking management
+- Dedicated account dashboard
+- Invoice generation
+- Multiple delivery addresses saved
+- Priority support
+
+---
+
+**Admin Features**
+- Manage users, porters, and businesses
+- Monitor live deliveries
+- Pricing & surge management
+- Analytics & reports
+- Dispute resolution
+
+---
+
+**Nice-to-Have**
+- OTP verification on delivery
+- In-app chat between customer and porter
+- Promo codes & referral system
+- Push notifications
+- Multi-language support
+
+---
+
+Which of these are you planning to build first? I can help you plan the tech structure or UI flow for any of them.

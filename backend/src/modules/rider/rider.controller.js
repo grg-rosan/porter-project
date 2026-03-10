@@ -1,3 +1,4 @@
+import { historyService } from "../../shared/utils/historyService.js"
 import {getRiderProfileService, updateAvailabilityService} from "./rider.service.js"
 
 export const  getRiderProfile = async (req, res) => {
@@ -16,5 +17,15 @@ export const updateAvailability = async (req, res) => {
         res.json({ status: "success", data: profile })
     } catch (error) {
         res.status(500).json({ status: "error", message: error.message })
+    }
+}
+export const tripHistory = async (req, res) => {
+    const {userID, role } = req.body;
+    const {filter} = req.query;
+    try {
+        const orders = await historyService(userID, role, filter )
+        res.json({status: "success" , count:orders.length ,data: orders})
+    } catch (error) {
+        res.status(500).json({status: "error", message: error.message})
     }
 }

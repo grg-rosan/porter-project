@@ -4,7 +4,7 @@ import { calculateDistance } from "../../services/dstance.service.js";
 import { calculateFare } from "../../services/pricing.service.js";
 import { getSurgeMultiplier } from "../../services/surge.service.js";
 
-const createOrder = async (orderData) => {
+export const createOrder = async (orderData) => {
   try {
     const { pickup_address, drop_address, order_weight, vehicle_type, userID } =
       orderData;
@@ -50,4 +50,22 @@ const createOrder = async (orderData) => {
   }
 };
 
-export default createOrder;
+export  const cancel_Order = async(orderID)  => {
+
+  const order = await prisma.order.findUnique({
+    where : {ID: orderID}
+  })
+  if(!order) throw new Error("Order not Found");
+  if(order.status === "CANCELLED"){
+    throw new Error("Order is already Cancelled");
+  }
+
+  if(order.status === "DELIVERED"){
+    throw new Error("Order already Delivered")
+  }
+  const canceledOrder = await prisma.order.update({
+    where: {orderID},
+    data :{ order_status: "CANCELLED"}
+  })
+  return canceledOrder
+}
