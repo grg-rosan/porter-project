@@ -30,12 +30,13 @@ export const initSocketHandlers = (io) => {
 
   // ─── CONNECTION ──────────────────────────────────────────────
   io.on("connection", (socket) => {
-    console.log(`✅ Connected: ${socket.userID} (${socket.id})`);
+    console.log(`Connected: ${socket.user.name} |${socket.userID} |(${socket.id})`);
 
     // ─── JOIN ROOM ───────────────────────────────────────────
     socket.on("user:join", async ({ role }) => {
-      socket.join(`user:${socket.userID}`);
-      console.log(`👤 ${role} joined room: user:${socket.userID}`);
+    console.log("-----user:join----")
+    socket.join(`user:${socket.userID}`)  // clean room name
+    console.log(`👤 ${socket.user.name} | userID: ${socket.userID} | role: ${role} | room: user:${socket.userID}`)
 
       if (role === "RIDER") {
         const riderProfile = await prisma.riderProfile.findUnique({
@@ -62,8 +63,9 @@ export const initSocketHandlers = (io) => {
         });
 
         if (riderProfile) {
+          console.log("----riders:online----")
           socket.join("online_riders");
-          socket.join(`riders:${riderProfile.vehicle_type}`);
+          socket.join(`riders:${riderProfile.vehicle_type}: name: ${socket.user.name}`);
           console.log(`🟢 Rider online: riders:${riderProfile.vehicle_type}`);
         }
       } catch (error) {

@@ -5,9 +5,10 @@ export const order_create=  async(req, res) => {
   try {
     const order = await createOrder({...req.body, userID:req.user.userID});
 
-     await orderMessageProducer("order.created",{
+     await orderMessageProducer({
         orderId: order.ID,
         customerId: order.customerID,
+        vehicleType: order.vehicle_type, 
         riderId: order.riderID,       // assigned rider
         pickup: order.pickup_address,
         dropoff: order.drop_address,

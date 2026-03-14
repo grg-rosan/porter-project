@@ -46,6 +46,7 @@ async function login(req, res) {
       data: {
         user: {
           id: user.userID,
+          name: user.name,
           email: user.email,
           role: user.role.toLocaleLowerCase()
         },
@@ -64,7 +65,7 @@ async function login(req, res) {
 
 async function logout(req, res) {
   try {
-    res.clearCookie("jwt", {
+    res.clearCookie("token", {
       httpOnly: true,
       secure: false, // true in production
       sameSite: "strict",

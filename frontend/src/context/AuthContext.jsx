@@ -2,8 +2,8 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext()
 
-export const AuthProvider = ({children}) => {
-   const [user, setUser] = useState(() => {
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(() => {
         try {
             const stored = localStorage.getItem("user")
             // ✅ check if stored value exists before parsing
@@ -13,18 +13,18 @@ export const AuthProvider = ({children}) => {
             return null
         }
     })
-    const login  = (userData) => {
+    const login = (userData) => {
         setUser(userData)
         localStorage.setItem("user", JSON.stringify(userData))
     }
 
-       const logout = () => {
+    const logout = () => {
         setUser(null)
         localStorage.removeItem("user")
     }
 
-    return(
-        <AuthContext.Provider value={{ user ,login, logout}}>
+    return (
+        <AuthContext.Provider value={{ user, login, logout }}>
             {children}
         </AuthContext.Provider>
     )

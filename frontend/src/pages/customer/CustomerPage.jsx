@@ -44,14 +44,23 @@ const CustomerPage = () => {
     }, [socket])
 
     const handleOrderRequest = async (formData) => {
+        console.log("submitting order:", formData) 
         const data = await getAPI("customer/orders/create", "POST", formData)
+          console.log("order response:", data) 
         if (data.order) {
-            setCurrentOrder(data.order)
+            const order = {...data.order, 
+                pickupLoc : JSON.parse(data.order.pickup_address),
+                dropLoc : JSON.parse(data.order.drop_address)
+                
+            }
+            setCurrentOrder(order)
             setStatus("pending")
+            console.log("status set to pending")
         }
     }
 
     const handleCancelOrder = () => {
+        
         socket.emit("order:cancel", {
             orderID: currentOrder.ID,
             riderID: currentOrder.riderID
@@ -59,7 +68,6 @@ const CustomerPage = () => {
         setStatus("cancelled")
         setCurrentOrder(null)
     }
-
     return (
         <div className="p-4">
             {status === "idle" || status === "cancelled" ? (

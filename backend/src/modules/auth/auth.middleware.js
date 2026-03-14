@@ -17,6 +17,7 @@ export const authMiddleware = async (req, res, next) => {
   if (!token) {
     return res.status(401).json({ message: "not authorized" });
   }
+     console.log("extracted token:", token)
 
   //<<-----verify if user exists ------->
   try {

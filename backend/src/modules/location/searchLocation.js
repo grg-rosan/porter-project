@@ -12,7 +12,8 @@ export async function geoCode(address){
                     limit:1
                 },
                 headers:{
-                    "User-Agent": "porter-app (your-email@example.com)"
+                   "User-Agent": "PorterDeliveryApp/1.0 (gurung.rosan01@gmail.com)",
+                    "Accept-Language": "en"
                 }
             }
         );

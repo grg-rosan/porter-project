@@ -1,17 +1,17 @@
-import socket  from "../socket/socket";
-import {createContext, useContext, useEffect, useState} from "react"
+import socket from "../socket/socket";
+import { createContext, useContext, useEffect, useState } from "react"
 import { useAuth } from "./AuthContext";
 
 
 
 const SocketContext = createContext();
 
-export const SocketProvider = ({children}) => {
+export const SocketProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
 
-    const {user, logout} = useAuth()
+    const { user } = useAuth()
 
-    const connectSocket = () =>{
+    const connectSocket = () => {
         socket.connect()
     }
 
@@ -19,31 +19,32 @@ export const SocketProvider = ({children}) => {
         socket.disconnect()
     }
 
-    useEffect(()=>{
-        socket.on("connect_error",(error) =>{
+    useEffect(() => {
+        socket.on("connect_error", (error) => {
             console.log("socket error", error.message);
         })
         socket.on("connect", () => {
             console.log("socket connected:", socket.id)
             setIsConnected(true);
-             if (user?.role) {
-                socket.emit("user:join", { role: user.role })  // join room on connect
+            if (socket.connected && user?.role) {
+                socket.emit("user:join", { role: user.role.toUpperCase() })
+                console.log("emitted user:join (already connected):", user.role)
             }
         })
 
-        socket.on("disconnect",()=>{
+        socket.on("disconnect", () => {
             console.log("socket disconnected")
             setIsConnected(false)
         })
-        return ()=>{
+        return () => {
             socket.off("connect")
             socket.off("disconnect")
             socket.off('connect_error')
         }
-    },[]);
+    }, [user]);
 
-    return(
-        <SocketContext.Provider value= {{socket, isConnected,connectSocket,disconnectSocket}}>
+    return (
+        <SocketContext.Provider value={{ socket, isConnected, connectSocket, disconnectSocket }}>
             {children}
         </SocketContext.Provider>
     )

@@ -1,6 +1,8 @@
 import http from "http"
 import { Server as socketIOServer} from "socket.io"
 import app from "./app.js";
+import { startOrderConsumer } from "./modules/order/order.consumer.js";
+import { initSocketHandlers } from "./infrastructure/socket/socket.handler.js";
 
 const port = 3000;
 
@@ -15,14 +17,8 @@ const io = new socketIOServer(server, {
     }
 })
 
-//listen for connection
-io.on("connection", (socket) => {
-    console.log("A user connected", socket.id);
-
-    socket.on("disconnect",()=>{
-        console.log("user disconnected", socket.id)
-    })
-})
+initSocketHandlers(io)
+startOrderConsumer(io)
 server.listen(port,()=>{
     console.log(`listening to port ${port}`)
 })

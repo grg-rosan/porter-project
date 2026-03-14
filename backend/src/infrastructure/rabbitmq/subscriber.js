@@ -17,6 +17,7 @@ export const consumeMessage = async (exchange, routingKey, queue, callback) => {
           const content = JSON.parse(message.content.toString());
           console.log("recevieNotfication:", content);
           channel.ack(message);
+          callback(content) 
         }
       },
       {

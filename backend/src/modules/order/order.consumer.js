@@ -1,11 +1,14 @@
 import { consumeMessage } from "../../infrastructure/rabbitmq/subscriber.js";
 
-consumeMessage(
-  "orders",
-  "order.created",
-  "order_queue",
-  (message) => {
+export const startOrderConsumer = (io) => {
+  consumeMessage("orders", "order.created", "order_queue", (message) => {
     console.log("Received order message:", message);
-    // e.g., send push notification or email
-  },
-);
+    io.to(`riders:${message.vehicleType}`).emit("order:new",{
+        orderID: message.orderId,
+                customerID: message.customerId,
+                pickup: message.pickup,
+                dropoff: message.dropoff,
+                amount: message.amount
+    })
+  });
+};
