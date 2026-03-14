@@ -8,7 +8,8 @@ import {
 //register user controller
 const registerUser = async (userData) => {
   try {
-    const { name, email, password, role } = userData;
+    const { name, email, password, licenseNumber ,role } = userData;
+    console.log(licenseNumber)
 
     //check if user exists
     const userExists = await prisma.user.findUnique({

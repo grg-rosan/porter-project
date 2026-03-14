@@ -56,13 +56,6 @@ const AuthPage = () => {
         }
 
     }
-    // const handleLogout = async () => {
-    //     await getAPI("auth/logout", 'POST')  // server clears cookie
-    //     logout()                             // clears localStorage
-    //     // disconnectSocket()
-    //     navigate('/')
-    // }
-
     return (
         <div>
             {

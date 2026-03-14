@@ -1,7 +1,7 @@
 import express from "express"
-import { authMiddleware } from "../auth/auth.middleware"
-import { roleMiddleware } from "../../shared/middleware/rolemiddleware"
-import { getRiderProfile, tripHistory, updateAvailability } from "./rider.controller"
+import { authMiddleware } from "../auth/auth.middleware.js"
+import { roleMiddleware } from "../../shared/middleware/rolemiddleware.js"
+import { getRiderProfile, tripHistory, updateAvailability } from "./rider.controller.js"
 
 const router = express.Router()
 

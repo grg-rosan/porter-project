@@ -1,10 +1,12 @@
-import { prisma } from "../../config/db.config";
+import { prisma } from "../../config/db.config.js";
 
-export const getRiderProfileService = async (riderID) => {
+export const getRiderProfileService = async (userID) => {
   const profile = await prisma.riderProfile.findUnique({
     where: { userID },
     include: {
-      select: { name: true, email: true },
+      user:{
+        select: { name: true, email: true },
+      }
     },
   });
 
