@@ -60,7 +60,6 @@ const CustomerPage = () => {
     }
 
     const handleCancelOrder = () => {
-        
         socket.emit("order:cancel", {
             orderID: currentOrder.ID,
             riderID: currentOrder.riderID
