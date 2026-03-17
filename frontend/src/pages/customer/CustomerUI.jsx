@@ -128,7 +128,7 @@ function OrderTracker({ onCancel }) {
           <span className="text-xs text-gray-400">ETA 3 min</span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-full bg-rose-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-11 h-11 rounded-full bg-rose-500 flex items-center justify-center shrink-0">
             <span className="text-white font-bold">{driver.avatar}</span>
           </div>
           <div className="flex-1">
@@ -170,7 +170,7 @@ function OrderTracker({ onCancel }) {
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-3 relative">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-300 ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${
                   i < step
                     ? "bg-[#F5A623]"
                     : i === step

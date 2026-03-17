@@ -25,20 +25,67 @@ const MOCK_ORDERS = [
 ];
 
 const COMPLETED_RIDES = [
-  { id: "R-091", customer: "Suman KC",       from: "Baneshwor", to: "Koteshwor",    fare: "Rs 210", time: "10:32 AM", rating: 5 },
-  { id: "R-090", customer: "Nisha Bajracharya", from: "Lazimpat", to: "Jawalakhel", fare: "Rs 390", time: "09:14 AM", rating: 4 },
-  { id: "R-089", customer: "Bikash Rai",     from: "Maharajgunj", to: "Chabahil",   fare: "Rs 175", time: "08:50 AM", rating: 5 },
-  { id: "R-088", customer: "Anita Gurung",   from: "Kalanki", to: "Ratnapark",      fare: "Rs 440", time: "Yesterday", rating: 4 },
-  { id: "R-087", customer: "Deepak Magar",   from: "Bhaktapur", to: "Thamel",       fare: "Rs 620", time: "Yesterday", rating: 5 },
+  {
+    id: "R-091",
+    customer: "Suman KC",
+    from: "Baneshwor",
+    to: "Koteshwor",
+    fare: "Rs 210",
+    time: "10:32 AM",
+    rating: 5,
+  },
+  {
+    id: "R-090",
+    customer: "Nisha Bajracharya",
+    from: "Lazimpat",
+    to: "Jawalakhel",
+    fare: "Rs 390",
+    time: "09:14 AM",
+    rating: 4,
+  },
+  {
+    id: "R-089",
+    customer: "Bikash Rai",
+    from: "Maharajgunj",
+    to: "Chabahil",
+    fare: "Rs 175",
+    time: "08:50 AM",
+    rating: 5,
+  },
+  {
+    id: "R-088",
+    customer: "Anita Gurung",
+    from: "Kalanki",
+    to: "Ratnapark",
+    fare: "Rs 440",
+    time: "Yesterday",
+    rating: 4,
+  },
+  {
+    id: "R-087",
+    customer: "Deepak Magar",
+    from: "Bhaktapur",
+    to: "Thamel",
+    fare: "Rs 620",
+    time: "Yesterday",
+    rating: 5,
+  },
 ];
 
 const AVATAR_COLORS = [
-  "bg-rose-500", "bg-violet-500", "bg-sky-500",
-  "bg-emerald-500", "bg-amber-500", "bg-pink-500",
+  "bg-rose-500",
+  "bg-violet-500",
+  "bg-sky-500",
+  "bg-emerald-500",
+  "bg-amber-500",
+  "bg-pink-500",
 ];
 
 const Icon = ({ name, size = 20, className = "" }) => (
-  <span className={`material-symbols-rounded select-none ${className}`} style={{ fontSize: size, lineHeight: 1 }}>
+  <span
+    className={`material-symbols-rounded select-none ${className}`}
+    style={{ fontSize: size, lineHeight: 1 }}
+  >
     {name}
   </span>
 );
@@ -46,7 +93,12 @@ const Icon = ({ name, size = 20, className = "" }) => (
 const Stars = ({ count }) => (
   <div className="flex gap-0.5">
     {[...Array(5)].map((_, i) => (
-      <Icon key={i} name="star" size={12} className={i < count ? "text-amber-400" : "text-gray-200"} />
+      <Icon
+        key={i}
+        name="star"
+        size={12}
+        className={i < count ? "text-amber-400" : "text-gray-200"}
+      />
     ))}
   </div>
 );
@@ -58,11 +110,15 @@ function OrderCard({ order, onAccept, onDecline, index }) {
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 animate-slide-in">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-full ${color} flex items-center justify-center flex-shrink-0`}>
+          <div
+            className={`w-9 h-9 rounded-full ${color} flex items-center justify-center shrink-0`}
+          >
             <span className="text-white font-bold text-sm">{order.avatar}</span>
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">{order.customer}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {order.customer}
+            </p>
             <p className="text-xs text-gray-400">{order.time}</p>
           </div>
         </div>
@@ -71,11 +127,11 @@ function OrderCard({ order, onAccept, onDecline, index }) {
 
       <div className="space-y-1.5 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+          <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
           <p className="text-xs text-gray-600 truncate">{order.pickup}</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
+          <div className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
           <p className="text-xs text-gray-600 truncate">{order.dropoff}</p>
         </div>
       </div>
@@ -122,7 +178,10 @@ function LiveMap() {
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     script.onload = () => {
       const L = window.L;
-      const map = L.map(mapRef.current, { zoomControl: false }).setView([27.7172, 85.3240], 13);
+      const map = L.map(mapRef.current, { zoomControl: false }).setView(
+        [27.7172, 85.324],
+        13,
+      );
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
@@ -138,7 +197,7 @@ function LiveMap() {
         iconAnchor: [18, 18],
       });
 
-      L.marker([27.7172, 85.3240], { icon: driverIcon })
+      L.marker([27.7172, 85.324], { icon: driverIcon })
         .addTo(map)
         .bindPopup("<b>Your location</b><br>Kathmandu");
 
@@ -150,7 +209,10 @@ function LiveMap() {
         iconAnchor: [6, 6],
       });
 
-      [[27.7215, 85.3115], [27.7089, 85.3360]].forEach(coords => {
+      [
+        [27.7215, 85.3115],
+        [27.7089, 85.336],
+      ].forEach((coords) => {
         L.marker(coords, { icon: pickupIcon }).addTo(map);
       });
 
@@ -167,7 +229,12 @@ function LiveMap() {
     };
   }, []);
 
-  return <div ref={mapRef} className="w-full h-full rounded-2xl overflow-hidden z-0" />;
+  return (
+    <div
+      ref={mapRef}
+      className="w-full h-full rounded-2xl overflow-hidden z-0"
+    />
+  );
 }
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────
@@ -199,12 +266,19 @@ export default function DriverDashboard() {
     ]);
   };
 
-  const declineOrder = (id) => setOrders((prev) => prev.filter((o) => o.id !== id));
+  const declineOrder = (id) =>
+    setOrders((prev) => prev.filter((o) => o.id !== id));
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0"
+        rel="stylesheet"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
+        rel="stylesheet"
+      />
 
       <style>{`
         * { font-family: 'DM Sans', sans-serif; }
@@ -222,23 +296,27 @@ export default function DriverDashboard() {
       `}</style>
 
       <div className="flex h-screen bg-[#f4f1ec] overflow-hidden">
-
         {/* ── LEFT COLUMN ─────────────────────────────────── */}
         <div className="flex flex-col w-[58%] p-4 gap-4">
-
           {/* Map */}
           <div className="relative flex-1 rounded-2xl overflow-hidden shadow-md">
             <LiveMap />
 
             {/* Online toggle overlay */}
             <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-md">
-              <div className={`w-2 h-2 rounded-full pulse-dot ${online ? "bg-green-500" : "bg-gray-400"}`} />
-              <span className="text-xs font-semibold text-gray-700">{online ? "Online" : "Offline"}</span>
+              <div
+                className={`w-2 h-2 rounded-full pulse-dot ${online ? "bg-green-500" : "bg-gray-400"}`}
+              />
+              <span className="text-xs font-semibold text-gray-700">
+                {online ? "Online" : "Offline"}
+              </span>
               <button
                 onClick={() => setOnline((p) => !p)}
                 className={`w-10 h-5 rounded-full transition-colors relative ${online ? "bg-green-500" : "bg-gray-300"}`}
               >
-                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${online ? "left-5" : "left-0.5"}`} />
+                <span
+                  className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${online ? "left-5" : "left-0.5"}`}
+                />
               </button>
             </div>
 
@@ -252,28 +330,42 @@ export default function DriverDashboard() {
           </div>
 
           {/* ── Earnings + Completed Rides ── */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" style={{ maxHeight: "42%" }}>
-
+          <div
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            style={{ maxHeight: "42%" }}
+          >
             {/* Earnings bar */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-[#F5A623]/8 to-transparent">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-linear-to-r from-[#F5A623]/8 to-transparent">
               <div>
-                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5">Today's Earnings</p>
-                <p className="font-display text-2xl font-800 text-gray-900">Rs {totalEarnings.toLocaleString()}</p>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5">
+                  Today's Earnings
+                </p>
+                <p className="font-display text-2xl font-800 text-gray-900">
+                  Rs {totalEarnings.toLocaleString()}
+                </p>
               </div>
               <div className="flex gap-4">
                 <div className="text-center">
-                  <p className="text-lg font-bold text-gray-800">{rides.length}</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Rides</p>
+                  <p className="text-lg font-bold text-gray-800">
+                    {rides.length}
+                  </p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                    Rides
+                  </p>
                 </div>
                 <div className="w-px bg-gray-100" />
                 <div className="text-center">
                   <p className="text-lg font-bold text-gray-800">4.9</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Rating</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                    Rating
+                  </p>
                 </div>
                 <div className="w-px bg-gray-100" />
                 <div className="text-center">
                   <p className="text-lg font-bold text-gray-800">38km</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">Distance</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">
+                    Distance
+                  </p>
                 </div>
               </div>
             </div>
@@ -281,19 +373,34 @@ export default function DriverDashboard() {
             {/* Rides list */}
             <div className="overflow-y-auto" style={{ maxHeight: "200px" }}>
               {rides.map((ride, i) => (
-                <div key={ride.id} className={`flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition ${i < rides.length - 1 ? "border-b border-gray-50" : ""}`}>
-                  <div className={`w-8 h-8 rounded-full ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center flex-shrink-0`}>
-                    <span className="text-white text-xs font-bold">{ride.customer[0]}</span>
+                <div
+                  key={ride.id}
+                  className={`flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition ${i < rides.length - 1 ? "border-b border-gray-50" : ""}`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center shrink-0`}
+                  >
+                    <span className="text-white text-xs font-bold">
+                      {ride.customer[0]}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{ride.customer}</p>
-                    <p className="text-xs text-gray-400 truncate">{ride.from} → {ride.to}</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate">
+                      {ride.customer}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {ride.from} → {ride.to}
+                    </p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-gray-800">{ride.fare}</p>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-gray-800">
+                      {ride.fare}
+                    </p>
                     <Stars count={ride.rating} />
                   </div>
-                  <span className="text-[10px] text-gray-300 ml-1 flex-shrink-0">{ride.time}</span>
+                  <span className="text-[10px] text-gray-300 ml-1 shrink-0">
+                    {ride.time}
+                  </span>
                 </div>
               ))}
             </div>
@@ -303,12 +410,15 @@ export default function DriverDashboard() {
         {/* ── RIGHT COLUMN — New Orders ────────────────────── */}
         <div className="flex flex-col w-[42%] p-4 pl-0">
           <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
-
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
-                <h2 className="font-display font-bold text-gray-900 text-base">Incoming Orders</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Accept or decline ride requests</p>
+                <h2 className="font-display font-bold text-gray-900 text-base">
+                  Incoming Orders
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Accept or decline ride requests
+                </p>
               </div>
               {orders.length > 0 && (
                 <span className="w-6 h-6 rounded-full bg-[#F5A623] text-white text-xs font-bold flex items-center justify-center">
@@ -324,8 +434,12 @@ export default function DriverDashboard() {
                   <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-4">
                     <Icon name="inbox" size={32} className="text-gray-300" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-400">No new orders</p>
-                  <p className="text-xs text-gray-300 mt-1">New customer orders will appear here</p>
+                  <p className="text-sm font-semibold text-gray-400">
+                    No new orders
+                  </p>
+                  <p className="text-xs text-gray-300 mt-1">
+                    New customer orders will appear here
+                  </p>
                 </div>
               ) : (
                 orders.map((order, i) => (
@@ -343,10 +457,16 @@ export default function DriverDashboard() {
             {/* Footer status */}
             <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${online ? "bg-green-500 pulse-dot" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-400">{online ? "Accepting orders" : "You are offline"}</span>
+                <div
+                  className={`w-2 h-2 rounded-full ${online ? "bg-green-500 pulse-dot" : "bg-gray-300"}`}
+                />
+                <span className="text-xs text-gray-400">
+                  {online ? "Accepting orders" : "You are offline"}
+                </span>
               </div>
-              <button className="text-xs text-[#F5A623] font-semibold hover:underline">View all</button>
+              <button className="text-xs text-[#F5A623] font-semibold hover:underline">
+                View all
+              </button>
             </div>
           </div>
         </div>
