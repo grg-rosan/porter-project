@@ -1,98 +1,86 @@
-import { useEffect, useState } from "react"
-import { useSocket } from "../../context/SocketContext"
-import OrderFormComp from "./customerComps/OrderFormComp"
-import OrderStatus from "./customerComps/OrderStatus"
-import { getAPI } from "../../api/api"
-import TrackingMap from "../../components/sharedComps/TrackingMap"
+import { useState } from "react";
+import { useSocket } from "../../context/SocketContext";
+import { getAPI } from "../../api/api";
+import CustomerNavbar from "../../components/layoutComps/Navbars/CustomerNavbar";
+import TrackingMap from "../../components/sharedComps/TrackingMap";
+import OrderFormComp from "./customerComps/OrderFormComp";
+import useCustomerOrderSocket from "../../hooks/customerSocket";
 
-const CustomerPage = () => {
-    const { socket } = useSocket()
-    const [status, setStatus] = useState("idle")
-    const [riderLocation, setRiderLocation] = useState(null)
-    const [currentOrder, setCurrentOrder] = useState(null)
+export default function CustomerPage() {
+  const { socket }                          = useSocket();
+  const [status,        setStatus]          = useState("idle");
+  const [riderLocation, setRiderLocation]   = useState(null);
+  const [currentOrder,  setCurrentOrder]    = useState(null);
+  const [sheetOpen,     setSheetOpen]       = useState(false);
 
-    useEffect(() => {
-        socket.on("order:accepted", ({ riderID }) => {
-            setStatus("accepted")
-            setCurrentOrder(prev => ({ ...prev, riderID }))
-        })
+  useCustomerOrderSocket({ setStatus, setCurrentOrder, setRiderLocation, setSheetOpen });
 
-        socket.on("rider:location:update", ({ lat, lng }) => {
-            console.log("📍 rider location:", lat, lng)  // debug
-            setRiderLocation({ lat, lng })
-        })
-
-        socket.on("order:status:update", ({ status }) => {
-            setStatus(status)
-            if (status === "delivered") {
-                setCurrentOrder(null)
-                setRiderLocation(null)
-            }
-        })
-
-        socket.on("order:cancelled", () => {
-            setStatus("cancelled")
-            setCurrentOrder(null)
-        })
-
-        return () => {
-            socket.off("order:accepted")
-            socket.off("rider:location:update")
-            socket.off("order:status:update")
-            socket.off("order:cancelled")
-        }
-    }, [socket])
-
-    const handleOrderRequest = async (formData) => {
-        console.log("submitting order:", formData) 
-        const data = await getAPI("customer/orders/create", "POST", formData)
-          console.log("order response:", data) 
-        if (data.order) {
-            const order = {...data.order, 
-                pickupLoc : JSON.parse(data.order.pickup_address),
-                dropLoc : JSON.parse(data.order.drop_address)
-                
-            }
-            setCurrentOrder(order)
-            setStatus("pending")
-            console.log("status set to pending")
-        }
+  const handleOrderRequest = async (formData) => {
+    const data = await getAPI("customer/orders/create", "POST", formData);
+    if (data.order) {
+      setCurrentOrder({
+        ...data.order,
+        pickupLoc: JSON.parse(data.order.pickup_address),
+        dropLoc:   JSON.parse(data.order.drop_address),
+      });
+      setStatus("pending");
     }
+  };
 
-    const handleCancelOrder = () => {
-        socket.emit("order:cancel", {
-            orderID: currentOrder.ID,
-            riderID: currentOrder.riderID
-        })
-        setStatus("cancelled")
-        setCurrentOrder(null)
-    }
-    return (
-        <div className="p-4">
-            {status === "idle" || status === "cancelled" ? (
-                <OrderFormComp onSubmit={handleOrderRequest} />
-            ) : (
-                <div className="space-y-4">
-                    <OrderStatus status={status} />
+  const handleCancelOrder = () => {
+    socket.emit("order:cancel", {
+      orderID: currentOrder.ID,
+      riderID: currentOrder.riderID,
+    });
+    setStatus("idle");
+    setCurrentOrder(null);
+    setRiderLocation(null);
+  };
 
-                    {/* ✅ only one map component */}
-                    <TrackingMap
-                        riderLocation={riderLocation}
-                        pickupLocation={currentOrder?.pickupLoc}
-                    />
+  return (
+    // Full-height page, no scroll on the outer shell
+    <div
+      className="min-h-screen bg-gray-50 flex flex-col"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
+    >
+      {/*
+        ── Main content area ──
+        flex-1 so it fills remaining height below navbar.
+        The outer padding (p-6) provides the "equal padding wrapping all components"
+        from the wireframe — this 20% breathing room is represented by the gap/padding.
+      */}
+      <main className="flex-1 p-6">
+        <div className="h-full flex gap-6">
 
-                    {(status === "pending" || status === "accepted") && (
-                        <button
-                            onClick={handleCancelOrder}
-                            className="w-full bg-red-500 text-white p-2 rounded"
-                        >
-                            Cancel Order
-                        </button>
-                    )}
-                </div>
-            )}
+          {/*
+            ── Left: Map — 40% width ──
+            Uses a fixed aspect ratio on smaller screens, full height on desktop.
+          */}
+          <section
+            className="w-[40%] shrink-0"
+            style={{ minHeight: "calc(100vh - 64px - 48px)" }}
+            aria-label="Tracking map"
+          >
+            <TrackingMap
+              riderLocation={riderLocation}
+              pickupLocation={currentOrder?.pickupLoc}
+            />
+          </section>
+
+          {/*
+            ── Right: Form — 40% width ──
+            Remaining 20% is the gap + outer padding (the equal wrapping padding).
+          */}
+          <section
+            className="w-[40%] shrink-0 bg-white rounded-2xl shadow-sm p-6 overflow-y-auto"
+            style={{ minHeight: "calc(100vh - 64px - 48px)" }}
+            aria-label="Order form"
+          >
+            <OrderFormComp onSubmit={handleOrderRequest} />
+          </section>
+
         </div>
-    )
+      </main>
+    </div>
+  );
 }
-
-export default CustomerPage

@@ -1,8 +1,6 @@
 import { prisma } from "../../config/db.config.js";
-import { geoCode } from "../location/searchLocation.js";
-import { calculateDistance } from "../../services/distance.service.js";
-import { calculateFare } from "../../services/pricing.service.js";
-import { getSurgeMultiplier } from "../../services/surge.service.js";
+import calculateFare from "../../shared/utils/calculateFare.js";
+import getDistance from "../../shared/utils/getDistance.js";
 
 export const createOrder = async (orderData) => {
   try {
@@ -17,21 +15,15 @@ export const createOrder = async (orderData) => {
       throw new Error("customer profile not found");
     }
 
-    //get lat and lng form geocode
-      const [pickupLoc, dropLoc] = await Promise.all([
-        geoCode(pickup_address),
-        geoCode(drop_address)
-      ])
+    const pickupLoc = JSON.parse(pickup_address) 
+    const dropLoc   = JSON.parse(drop_address)
+    const {distance_km, duration_min} = await getDistance(pickupLoc, dropLoc)
 
-    const distance = calculateDistance(pickupLoc, dropLoc);
-
-    const currentDemand = Math.floor(Math.random() * 100);
-    const surgeMultiplier = getSurgeMultiplier(currentDemand);
-    const fare = calculateFare({
-      distance,
+    const { fare } = calculateFare({
+      distance_km,
+      duration_min,
       vehicle_type,
-      weightKg: order_weight,
-      surgeMultiplier,
+      weight_kg: order_weight,
     });
 
     const order = await prisma.order.create({

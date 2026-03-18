@@ -1,79 +1,57 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
-import { useEffect } from "react"
-import "leaflet/dist/leaflet.css"
-import L from "leaflet"
+const Icon = ({ name, size = 20, className = "" }) => (
+  <span
+    className={`material-symbols-rounded select-none ${className}`}
+    style={{ fontSize: size, lineHeight: 1 }}
+  >
+    {name}
+  </span>
+);
 
-// fix leaflet default icon bug in vite
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-})
+// Replace inner content with your real map library (Leaflet, Mapbox, Google Maps, etc.)
+export default function TrackingMap({ riderLocation, pickupLocation }) {
+  return (
+    <div className="w-full h-full relative bg-gray-100 rounded-2xl overflow-hidden">
 
-// custom icons
-const riderIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
-    iconSize: [40, 40],
-})
+      {/* Grid texture to suggest a map */}
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "linear-gradient(#d1d5db 1px, transparent 1px), linear-gradient(90deg, #d1d5db 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
 
-const pickupIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-    iconSize: [35, 35],
-})
-
-// auto pan map to new position
-const MapUpdater = ({ center }) => {
-    const map = useMap()
-    useEffect(() => {
-        if (center) map.panTo(center)
-    }, [center, map])
-    return null
-}
-
-const TrackingMap = ({ riderLocation, pickupLocation }) => {
-    console.log('trackingmap')
-    const defaultCenter = pickupLocation
-        ? [pickupLocation.lat, pickupLocation.lng]
-        : [27.7172, 85.3240] // default kathmandu
-
-    return (
-        <MapContainer
-            center={defaultCenter}
-            zoom={14}
-            style={{ height: "400px", width: "100%", borderRadius: "8px" }}
+      {/* Placeholder center */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+        <div className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center">
+          <Icon name="map" size={28} className="text-orange-400" />
+        </div>
+        <p
+          className="text-sm font-medium text-gray-400"
+          style={{ fontFamily: "'Syne', sans-serif" }}
         >
-            <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-            />
+          Map renders here
+        </p>
+      </div>
 
-            {/* auto pan when rider moves */}
-            {riderLocation && (
-                <MapUpdater center={[riderLocation.lat, riderLocation.lng]} />
-            )}
+      {/* Rider location badge */}
+      {riderLocation && (
+        <div className="absolute top-4 left-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
+          <Icon name="two_wheeler" size={16} className="text-orange-400" />
+          <span className="text-xs font-semibold text-gray-700">
+            {riderLocation.lat.toFixed(4)}, {riderLocation.lng.toFixed(4)}
+          </span>
+        </div>
+      )}
 
-            {/* rider marker */}
-            {riderLocation && (
-                <Marker
-                    position={[riderLocation.lat, riderLocation.lng]}
-                    icon={riderIcon}
-                >
-                    <Popup>Rider is here</Popup>
-                </Marker>
-            )}
-
-            {/* pickup marker */}
-            {pickupLocation && (
-                <Marker
-                    position={[pickupLocation.lat, pickupLocation.lng]}
-                    icon={pickupIcon}
-                >
-                    <Popup>Pickup Location</Popup>
-                </Marker>
-            )}
-        </MapContainer>
-    )
+      {/* Pickup badge */}
+      {pickupLocation && (
+        <div className="absolute bottom-4 left-4 bg-white rounded-xl shadow-md px-3 py-2 flex items-center gap-2">
+          <Icon name="location_on" size={16} className="text-green-500" />
+          <span className="text-xs font-semibold text-gray-700">Pickup set</span>
+        </div>
+      )}
+    </div>
+  );
 }
-
-export default TrackingMap
