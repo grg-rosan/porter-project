@@ -1,7 +1,7 @@
 import { useState } from "react";
 import useFareEstimate from "../../../hooks/useFareEstimate";
 
-const VEHICLE_TYPES = ["Bike", "Moto Fix", "Ride", "City2City"];
+const VEHICLE_TYPES = ["Scooter", "Bike", "Van", "Mini Truck"];
 
 const Icon = ({ name, size = 20, className = "" }) => (
   <span
@@ -16,29 +16,32 @@ const inputClass =
   "w-full bg-white rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 border border-gray-100 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition";
 
 export default function OrderFormComp({ onSubmit }) {
-  const [pickup,  setPickup]  = useState("");
-  const [dropoff, setDropoff] = useState("");
+  const [pickUp,  setPickUp]  = useState("");
+  const [dropOff, setDropOff] = useState("");
   const [weight,  setWeight]  = useState("");
   const [vehicle, setVehicle] = useState(VEHICLE_TYPES[0]);
 
-  const allFilled = pickup.trim() && dropoff.trim() && weight.trim();
-  const { estimate, estimating, error } = useFareEstimate(pickup, dropoff, weight, vehicle, allFilled);
+  const allFilled = pickUp.trim() && dropOff.trim() && weight.trim();
 
+  //calls backend estimate api to calculate fare through useFareEstimate hook
+  const { estimate, estimating, error } = useFareEstimate(pickUp, dropOff, weight, vehicle, allFilled);
+
+  
   const handleSwap = () => {
-    setPickup(dropoff);
-    setDropoff(pickup);
+    setPickUp(dropOff);
+    setDropOff(pickUp);
   };
 
   const handleBook = () => {
     if (!allFilled) return;
     onSubmit?.({
-      pickup_address: pickup,
-      drop_address:   dropoff,
+      pickup_address: pickUp,
+      drop_address:   dropOff,
       weight_kg:      parseFloat(weight),
       vehicle_type:   vehicle.toUpperCase(),
     });
-    setPickup("");
-    setDropoff("");
+    setPickUp("");
+    setDropOff("");
     setWeight("");
     setVehicle(VEHICLE_TYPES[0]);
   };
@@ -69,16 +72,16 @@ export default function OrderFormComp({ onSubmit }) {
           </div>
           <div className="flex-1 flex flex-col gap-2">
             <input
-              value={pickup}
-              onChange={(e) => setPickup(e.target.value)}
+              value={pickUp}
+              onChange={(e) => setPickUp(e.target.value)}
               placeholder="Pickup location"
               aria-label="Pickup location"
               className={inputClass}
               style={{ fontFamily: "inherit" }}
             />
             <input
-              value={dropoff}
-              onChange={(e) => setDropoff(e.target.value)}
+              value={dropOff}
+              onChange={(e) => setDropOff(e.target.value)}
               placeholder="Where to?"
               aria-label="Drop-off location"
               className={inputClass}
@@ -87,7 +90,7 @@ export default function OrderFormComp({ onSubmit }) {
           </div>
           <button
             onClick={handleSwap}
-            aria-label="Swap pickup and drop-off"
+            aria-label="Swap pickUp and drop-off"
             className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition shrink-0"
           >
             <Icon name="swap_vert" size={16} className="text-gray-600" />

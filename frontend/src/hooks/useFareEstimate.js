@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { getAPI } from "../api/api";
 const DEBOUNCE_DELAY_MS = 600;
 
-const useFareEstimate = (pickup, dropoff, weight, vehicle, allFilled) => {
+const useFareEstimate = (pickUp, dropOff, weight, vehicle, allFilled) => {
   const [estimate,   setEstimate]   = useState(null);
   const [estimating, setEstimating] = useState(false);
   const [error,      setError]      = useState(null);
@@ -13,8 +13,8 @@ const useFareEstimate = (pickup, dropoff, weight, vehicle, allFilled) => {
     setError(null);
     try {
       const data = await getAPI("customer/orders/estimate", "POST", {
-        pickup_address: pickup,
-        drop_address:   dropoff,
+        pickup_address: pickUp,
+        drop_address:   dropOff,
         weight_kg:      parseFloat(weight),
         vehicle_type:   vehicle.toUpperCase(),
       });
@@ -25,7 +25,7 @@ const useFareEstimate = (pickup, dropoff, weight, vehicle, allFilled) => {
     } finally {
       setEstimating(false);
     }
-  }, [pickup, dropoff, weight, vehicle]);
+  }, [pickUp, dropOff, weight, vehicle]);
 
   useEffect(() => {
     if (!allFilled) {
