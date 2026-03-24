@@ -65,23 +65,6 @@ export default function CustomerPage() {
         />
       </div>
 
-      {/* ── NAVBAR — glass effect floating over map ── */}
-      <header
-        className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-5 pt-10 pb-3"
-        style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.96) 75%, transparent)" }}
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
-            <Icon name="two_wheeler" size={18} className="text-white" />
-          </div>
-          <span className="text-base font-bold text-gray-900" style={{ fontFamily: "'Syne', sans-serif" }}>
-            SawaRide
-          </span>
-        </div>
-        <button className="w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center">
-          <Icon name="person" size={20} className="text-gray-600" />
-        </button>
-      </header>
 
       {/* ── BOTTOM SHEET — slides up over the map ── */}
       <div
