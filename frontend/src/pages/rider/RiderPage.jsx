@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useSocket } from "../../context/SocketContext"
 import OrderCard from "./riderComps/OrderCard"
 import JobControls from "./riderComps/JobControls"
-import TrackingMap from "../../components/sharedComps/TrackingMap"
+import TrackingMap from "../../components/sharedComps/Map"
 import { getAPI } from "../../api/api"
 
 const RiderPage = () => {

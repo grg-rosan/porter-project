@@ -1,80 +1,43 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import LoginForm from '../components/authComps/LoginForm'
-import RegisterComp from '../components/authComps/RegisterComp'
-import { getAPI } from '../api/api'
-import { useSocket } from '../context/SocketContext'
-import { useAuth } from '../context/AuthContext'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import RegisterForm from "../components/authComps/RegisterComp";
+import LoginForm from "../components/authComps/LoginForm";
 
 const AuthPage = () => {
+  const navigate = useNavigate();
+  const { login, register, user, error, loading } = useAuth();
+  const [isLogin, setIsLogin] = useState(true);
 
-    const navigate = useNavigate()
-    const { connectSocket } = useSocket()
-    const { login, user } = useAuth()
-    const [isLogin, setIsLogin] = useState(true)
-    const [error, setError] = useState('')
+  useEffect(() => {
+    if (user?.role) navigate("/dashboard");
+  }, [user, navigate]);
 
-    useEffect(() => {
-        if (user?.role) {
-            navigate("/dashboard")
-        }
-    }, [user, navigate])
+  const handleRegister = async (formData) => {
+    const success = await register(formData);
+    if (success) setIsLogin(true); // switch to login after register
+  };
 
+  return (
+    <div>
+      {isLogin ? (
+        <LoginForm
+          onLogin={login}
+          switchToRegister={() => setIsLogin(false)}
+          error={error}
+          loading={loading}
+        />
+      ) : (
+        <RegisterForm
+          onRegister={handleRegister}
+          switchToLogin={() => setIsLogin(true)}
+          error={error}
+          loading={loading}
+        />
+      )}
+    </div>
+  );
+};
 
-    //handle Register
-    const handleRegister = async (formData) => {
-          console.log("sending to backend:", formData)
-        try {
-            const data = await getAPI("auth/register", 'POST', formData);
-            console.log("registered:", data)
-            setError('')
-            setIsLogin(true)
-
-        } catch (error) {
-            console.log(error)
-            setError("something went wrong")
-        }
-    }
-    //handle login
-
-    const handleLogin = async (formData) => {
-        console.log(formData)
-        try {
-            const data = await getAPI("auth/login", 'POST', formData);
-            setError('');
-            if (data.status !== "success") {
-                setError(data.message || "login failed");
-                return;
-            }
-            login(data.data.user)
-            console.log("login successful:", data)
-            connectSocket()
-
-        } catch (error) {
-            console.log(error);
-            setError("something went wrong")
-        }
-
-    }
-    return (
-        <div>
-            {
-                isLogin ?
-                    (
-                        <LoginForm
-                            onLogin={handleLogin}
-                            switchToRegister={() => { setIsLogin(false); setError('') }}
-                            error={error} />
-                    ) : (
-                        <RegisterComp
-                            onRegister={handleRegister}
-                            switchToLogin={() => { setIsLogin(true); setError('') }}
-                            error={error} />
-                    )
-            }
-
-        </div>
-    )
-}
 
 export default AuthPage
