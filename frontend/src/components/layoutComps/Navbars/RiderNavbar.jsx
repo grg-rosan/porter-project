@@ -1,16 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef,} from "react";
+import VerificationModal from "../../VerificationModal";
 
 const NAV_LINKS = [
   { icon: "location_city", label: "City" },
   { icon: "history", label: "Request history" },
   { icon: "notifications", label: "Notifications" },
   { icon: "settings", label: "Settings" },
-  { icon: "help", label: "Help" },
-  { icon: "support_agent", label: "Support" },
 ];
 
 const PROFILE_MENU = [
-  { icon: "local_shipping", label: "Couriers" },
   { icon: "public", label: "City to City" },
   { icon: "inventory_2", label: "Freight" },
   { icon: "shield", label: "Safety" },
@@ -31,25 +29,17 @@ export default function RiderNavbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("City");
+  const [verifyOpen, setVerifyOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const openVerify = () => {
+    setProfileOpen(false);
+    setMobileMenuOpen(false);
+    setVerifyOpen(true);
+  };
 
   return (
     <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0"
-        rel="stylesheet"
-      />
-
       <nav className="w-full bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -116,10 +106,20 @@ export default function RiderNavbar() {
 
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50">
+                    {/* ── Profile header with Verify badge ── */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-semibold text-gray-800">Roshan</p>
-                      <p className="text-xs text-gray-400 mt-0.5">View profile →</p>
+                      <button
+                        onClick={openVerify}
+                        className="flex items-center gap-1 mt-1.5 text-xs bg-amber-50 border
+                                   border-amber-200 text-amber-700 font-semibold px-2 py-0.5
+                                   rounded-full hover:bg-amber-100 transition-colors"
+                      >
+                        <Icon name="verified_user" size={12} className="text-amber-500" />
+                        Verify account
+                      </button>
                     </div>
+
                     {PROFILE_MENU.map((item, i) =>
                       item.divider ? (
                         <div key={i} className="my-1.5 border-t border-gray-100" />
@@ -140,8 +140,7 @@ export default function RiderNavbar() {
                 )}
               </div>
 
-              {/* Mobile: avatar + expand arrow + close */}
-{/* Mobile hamburger only */}
+              {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileMenuOpen((p) => !p)}
                 className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition"
@@ -156,12 +155,12 @@ export default function RiderNavbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white">
 
-            {/* Profile row at top */}
+            {/* Profile row with verify button */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
               <div className="w-10 h-10 rounded-full bg-[#c0392b] flex items-center justify-center shrink-0">
                 <span className="text-white font-bold">R</span>
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800">Roshan</p>
                 <div className="flex items-center gap-0.5 mt-0.5">
                   {[...Array(4)].map((_, i) => (
@@ -171,11 +170,20 @@ export default function RiderNavbar() {
                   <span className="text-[10px] text-gray-400 ml-1">4.8 (0)</span>
                 </div>
               </div>
+              {/* ── Verify badge on mobile profile row ── */}
+              <button
+                onClick={openVerify}
+                className="flex items-center gap-1 text-xs bg-amber-50 border border-amber-200
+                           text-amber-700 font-semibold px-2.5 py-1 rounded-full
+                           hover:bg-amber-100 transition-colors shrink-0"
+              >
+                <Icon name="verified_user" size={13} className="text-amber-500" />
+                Verify
+              </button>
             </div>
 
-            {/* All links in one list */}
+            {/* All links */}
             <div className="px-4 py-3 space-y-1">
-              {/* Nav links */}
               {NAV_LINKS.map((item) => (
                 <button
                   key={item.label}
@@ -191,10 +199,8 @@ export default function RiderNavbar() {
                 </button>
               ))}
 
-              {/* Divider */}
               <div className="border-t border-gray-100 my-2" />
 
-              {/* Profile menu links */}
               {PROFILE_MENU.map((item, i) =>
                 item.divider ? (
                   <div key={i} className="border-t border-gray-100 my-2" />
@@ -212,7 +218,6 @@ export default function RiderNavbar() {
                 )
               )}
 
-              {/* Driver mode */}
               <div className="pt-2">
                 <button className="w-full flex items-center justify-center gap-2 bg-[#b5e048] hover:bg-[#a4cf3a] text-gray-800 font-bold py-3.5 rounded-xl text-sm transition-all">
                   <Icon name="drive_eta" size={18} />
@@ -223,6 +228,9 @@ export default function RiderNavbar() {
           </div>
         )}
       </nav>
+
+      {/* ── Verification modal — lives outside <nav> so it overlays everything ── */}
+      <VerificationModal open={verifyOpen} onClose={() => setVerifyOpen(false)} />
     </>
   );
 }
