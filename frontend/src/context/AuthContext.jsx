@@ -1,11 +1,11 @@
 import { createContext, useContext, useState } from "react";
 import { getAPI } from "../api/api";
-import { useSocket } from "./SocketContext";
+// import { useSocket } from "./SocketContext";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const { connectSocket, joinAsUser } = useSocket();
+  // const { connectSocket, joinAsUser } = useSocket();
 
   const [user, setUser] = useState(() => {
     try {
@@ -24,18 +24,23 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError("");
     try {
-      const data = await getAPI("auth/login", "POST", formData);
-
-      if (data.status !== "success") {
-        setError(data.message || "Login failed");
-        return;
-      }
-
-      const userData = data.data.user;
+      // const data = await getAPI("auth/login", "POST", formData);
+      // if (data.status !== "success") {
+      //   setError(data.message || "Login failed");
+      //   return;
+      // }
+      // const userData = data.data.user;
+      const userData = {
+        id: "123",
+        name: "Test User",
+        email: formData.email,
+        role: "admin", // Change to "rider" to test that flow
+        token: "fake-jwt-token"
+      };
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
-      connectSocket(userData); // connect and pass user
-      joinAsUser(userData);
+      // connectSocket(userData); // connect and pass user
+      // joinAsUser(userData);
     } catch (error) {
       setError("Something went wrong", error.message);
     } finally {

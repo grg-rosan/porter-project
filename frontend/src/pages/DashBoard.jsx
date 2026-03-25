@@ -1,33 +1,11 @@
-// DashBoard.jsx — redirect based on role
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+// DashBoard.jsx — cleaner
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { ROLE_HOME } from '../constants/role'
 
 const DashBoard = () => {
-    const { user } = useAuth()
-    const navigate = useNavigate()
-
-    useEffect(() => {
-        if (user?.role === 'customer') navigate('/customer', { replace: true })
-        if (user?.role === 'rider') navigate('/rider', { replace: true })
-    }, [user, navigate])
-
-    return <div>Redirecting...</div>
+  const { user } = useAuth()
+  return <Navigate to={ROLE_HOME[user?.role] || '/'} replace />
 }
 
 export default DashBoard
-// ```
-
-// ---
-
-// ## Flow
-// ```
-// login → data.user.role = 'customer'
-//     ↓
-// navigate('/dashboard')
-//     ↓
-// Dashboard sees role → navigate('/customer')
-//     ↓
-// ProtectedRoute checks role === 'customer' ✅
-//     ↓
-// CustomerPage renders

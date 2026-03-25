@@ -6,6 +6,7 @@ import DashBoard from './pages/DashBoard'
 import CustomerPage from './pages/customer/CustomerPage.jsx'
 import RiderPage from './pages/rider/RiderPage.jsx'
 import ProtectedRoute from './routes/ProtectedRoutes'
+import AdminPage from './pages/admin/AdminPage.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -28,6 +29,9 @@ const router = createBrowserRouter(
       <Route element={<ProtectedRoute allowedRole="rider" />}>
         <Route path="rider" element={<RiderPage />} />
       </Route>
+      <Route element={<ProtectedRoute allowedRole="admin" />}>
+        <Route path='admin' element={<AdminPage />}/>
+      </Route>
 
       {/* catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -41,4 +45,5 @@ const App = () => {
 }
 
 export default App
+
 
