@@ -18,10 +18,12 @@
     "amqplib": "^0.10.9",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "cookie": "^1.1.1",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
     "pg": "^8.18.0",
     "socket.io": "^4.8.3"
   },

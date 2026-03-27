@@ -1,62 +1,52 @@
 import socket from "../socket/socket";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
 
 const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
-  const [isConnected, setIsConnected] = useState(false);
+    const { user } = useAuth();
+    const [isConnected, setIsConnected] = useState(false);
 
-  // Socket listeners — set up once only, no dependencies
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("socket connected:", socket.id);
-      setIsConnected(true);
-    });
+    // auto connect/disconnect based on auth state
+    useEffect(() => {
+        if (!user?.role) {
+            socket.off();
+            socket.disconnect();
+            return;
+        }
 
-    socket.on("disconnect", () => {
-      console.log("socket disconnected");
-      setIsConnected(false);
-    });
+        socket.once("connect", () => {
+            socket.emit("user:join", { role: user.role.toUpperCase() });
+            console.log("emitted user:join:", user.role);
+        });
 
-    socket.on("connect_error", (error) => {
-      console.log("socket error:", error.message);
-    });
+        socket.connect();
 
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("connect_error");
-    };
-  }, []);                              // ← empty, runs once
+        return () => {
+            socket.off();
+            socket.disconnect();
+        };
+    }, [user]);
 
-  // Pass user in so socket can emit user:join after connecting
-  const connectSocket = (user) => {
-    socket.connect();
+    // status listeners
+    useEffect(() => {
+        socket.on("connect", () => setIsConnected(true));
+        socket.on("disconnect", () => setIsConnected(false));
+        socket.on("connect_error", (err) => console.error("socket error:", err.message));
 
-    // if already connected by the time this runs, emit immediately
-    if (socket.connected && user?.role) {
-      socket.emit("user:join", { role: user.role.toUpperCase() });
-      console.log("emitted user:join:", user.role);
-    }
-  };
+        return () => {
+            socket.off("connect");
+            socket.off("disconnect");
+            socket.off("connect_error");
+        };
+    }, []);
 
-  // emit user:join once socket confirms connection
-  // this handles the case where connect event fires after connectSocket()
-  const joinAsUser = (user) => {
-    if (!user?.role) return;
-    socket.emit("user:join", { role: user.role.toUpperCase() });
-    console.log("emitted user:join:", user.role);
-  };
-
-  const disconnectSocket = () => {
-    socket.disconnect();
-  };
-
-  return (
-    <SocketContext.Provider value={{ socket, isConnected, connectSocket, joinAsUser, disconnectSocket }}>
-      {children}
-    </SocketContext.Provider>
-  );
+    return (
+        <SocketContext.Provider value={{ socket, isConnected }}>
+            {children}
+        </SocketContext.Provider>
+    );
 };
 
 export const useSocket = () => useContext(SocketContext);

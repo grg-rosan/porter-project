@@ -5,11 +5,14 @@ import App from "./App.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import "leaflet/dist/leaflet.css";
+import { UserProvider } from "./context/userContext.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <SocketProvider>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </SocketProvider>,
+  <AuthProvider>
+    <UserProvider>
+      <SocketProvider>
+        <App />
+      </SocketProvider>,
+    </UserProvider>
+  </AuthProvider>
 );

@@ -1,31 +1,31 @@
-import { historyService } from "../../shared/utils/historyService.js"
-import {getRiderProfileService, updateAvailabilityService} from "./rider.service.js"
+import { historyService } from "../../utils/historyService.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import {
+  getRiderProfileService,
+  updateAvailabilityService,
+} from "./rider.service.js";
+import AppError from "../../utils/AppError.js";
 
-export const  getRiderProfile = async (req, res) => {
-    try{
-        const profile = await getRiderProfileService(req.user.userID)
-        res.json({status: "success", data : profile})
-    }catch(error){
-        res.status(500).json({status: "error", message: error.message})
-    }
-}
+export const getRiderProfile = asyncHandler(async (req, res) => {
+  const profile = await getRiderProfileService(req.user.userID);
+  res.json({ status: "success", data: profile });
+});
 
-export const updateAvailability = async (req, res) => {
-    try {
-        const { isAvailable } = req.body
-        const profile = await updateAvailabilityService(req.user.userID, isAvailable)
-        res.json({ status: "success", data: profile })
-    } catch (error) {
-        res.status(500).json({ status: "error", message: error.message })
+export const updateAvailability = asyncHandler(async (req, res) => {
+  const { isAvailable } = req.body;
+  const profile = await updateAvailabilityService(req.user.userID, isAvailable);
+  res.json({ status: "success", data: profile });
+});
+export const tripHistory = asyncHandler(async (req, res) => {
+  const { userID, role } = req.user;
+  const { filter } = req.query;
+  const orders = await historyService(userID, role, filter);
+  res.json({ status: "success", count: orders.length, data: orders });
+});
+export const submitDocs = asyncHandler(async(req, res) => {
+    const {license, governmentID, vehicle_img} = req.files;
+    if(!license || !governmentID || !vehicle_img){
+        throw new AppError("All documents are required",400)
+
     }
-}
-export const tripHistory = async (req, res) => {
-    const {userID, role } = req.body;
-    const {filter} = req.query;
-    try {
-        const orders = await historyService(userID, role, filter )
-        res.json({status: "success" , count:orders.length ,data: orders})
-    } catch (error) {
-        res.status(500).json({status: "error", message: error.message})
-    }
-}
+})

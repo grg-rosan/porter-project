@@ -17,6 +17,8 @@ router.patch("/availability", updateAvailability)
 
 router.get("/trips/history",tripHistory)
 
+router.post("/docs",submitDocs)
+
 export default router
 
 // GET /api/trips/history             // all trips

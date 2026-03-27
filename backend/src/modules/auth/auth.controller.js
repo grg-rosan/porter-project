@@ -1,10 +1,9 @@
 import { registerUser, logInUser} from "./auth.service.js";
 import {generateToken } from "../../shared/utils/generateToken.js"
+import asyncHandler from "../../utils/asyncHandler.js";
 
-async function register(req, res) {
-  try {
+const register = asyncHandler(async(req, res, next) =>  {
     const user = await registerUser(req.body);
-
     res.status(201).json({
       status: "success",
       data: {
@@ -15,19 +14,10 @@ async function register(req, res) {
         },
       },
     });
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({
-      status: "error",
-      message: error.message || "Something went wrong",
-    });
-  }
-}
+})
 
 async function login(req, res) {
-  try {
-    //login user
+    //login user | if loginUser throws new errro  => asyncHandler catches  => globalMiddleware responds
     const user  = await logInUser(req.body);
 
     //generate jwt token
@@ -41,7 +31,7 @@ async function login(req, res) {
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
-    res.status(201).json({
+    res.status(20).json({
       status: "success",
       data: {
         user: {
@@ -54,13 +44,6 @@ async function login(req, res) {
         token,
       },
     });
-  } catch (error) {
-    console.log(error);
-    res.status(401).json({
-      status: "error",
-      message: error.message || "Login failed",
-    });
-  }
 }
 
 async function logout(req, res) {

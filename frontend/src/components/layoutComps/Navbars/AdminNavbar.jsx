@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAnalytics } from "../../../hooks/useAnalystics";
 import { useAuth } from "../../../context/AuthContext";
+import { useUser } from "../../../context/userContext";
 
 const Icon = ({ name, size = 20, className = "" }) => (
   <span className={`material-symbols-rounded select-none ${className}`} style={{ fontSize: size, lineHeight: 1 }}>
@@ -16,7 +17,9 @@ const NAV_ITEMS = [
 ];
 
 export default function AdminNavbar({ activeSection, onNavigate }) {
-    const {user, logout}  = useAuth();
+
+   const { user, logout } = useAuth()       // for login state, logout
+
     const { pendingRiders, openComplaints } = useAnalytics();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -66,11 +69,11 @@ export default function AdminNavbar({ activeSection, onNavigate }) {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2.5 pl-3 border-l border-gray-800">
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-white leading-none">{user.name}</p>
-                  <p className="text-[10px] text-gray-500 mt-0.5" style={{ fontFamily: "'DM Mono', monospace" }}>{user.role}</p>
+                  <p className="text-xs font-semibold text-white leading-none">{user?.name}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5" style={{ fontFamily: "'DM Mono', monospace" }}>{user?.role}</p>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-[#F5A623] flex items-center justify-center">
-                  <span className="text-gray-950 font-black text-sm" style={{ fontFamily: "'Syne', sans-serif" }}>{user.avatar}</span>
+                  <span className="text-gray-950 font-black text-sm" style={{ fontFamily: "'Syne', sans-serif" }}>{user?.avatar}</span>
                 </div>
                 <button className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-800 transition">
                   <Icon name="logout" size={15} className="text-gray-500 hover:text-red-400" />
@@ -107,8 +110,8 @@ export default function AdminNavbar({ activeSection, onNavigate }) {
             ))}
             <div className="pt-2 border-t border-gray-800 flex items-center justify-between px-1">
               <div>
-                <p className="text-xs font-semibold text-white">{user.name}</p>
-                <p className="text-[10px] text-gray-500">{user.role}</p>
+                <p className="text-xs font-semibold text-white">{user?.name}</p>
+                <p className="text-[10px] text-gray-500">{user?.role}</p>
               </div>
               <button className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition">
                 <Icon name="logout" size={15} /> Logout
