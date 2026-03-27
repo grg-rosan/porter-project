@@ -1,19 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
-
-// User => Order
 
 enum OrderStatus {
   PENDING
@@ -22,6 +13,7 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
 }
+
 enum VehicleType {
   BIKE
   SCOOTER
@@ -41,6 +33,30 @@ enum Role {
   ADMIN
 }
 
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum NotificationType {
+  // order notifications
+  ORDER_PLACED
+  ORDER_ASSIGNED
+  ORDER_PICKED_UP
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+
+  // rider notifications
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+
+  // admin notifications
+  COMPLAINT
+  NEW_RIDER_APPLICATION
+}
+
 model User {
   userID   String @id @default(uuid())
   name     String
@@ -48,57 +64,86 @@ model User {
   password String
   role     Role
 
+  isBlocked   Boolean   @default(false)
+  blockedAt   DateTime?
+  blockReason String?   
   createdAt DateTime @default(now())
 
-  //relationship 
   riderProfile    RiderProfile?
   customerProfile CustomerProfile?
-}
-
-model RiderProfile {
-    riderID         String      @id @default(uuid())
-    userID          String      @unique
-
-    // vehicle
-    vehicle_type    VehicleType                    
-    vehicle_number  String?
-
-    // license
-    license_number  String      @unique
-
-    // availability
-    isAvailable     Boolean     @default(false)   
-
-    // ratings
-    rating          Float       @default(0.0)
-    totalDeliveries Int         @default(0)
-
-    // profile
-    phone           String?
-    profileImage    String?
-
-    createdAt       DateTime    @default(now())
-    updatedAt       DateTime    @updatedAt
-
-    user            User        @relation(fields: [userID], references: [userID])
-    orders          Order[]
+  notifications   Notification[]
 }
 
 model CustomerProfile {
   customerID String @id @default(uuid())
   userID     String @unique
 
-  address String?
+  // contact
+  phone        String?
+  profileImage String?
 
-  user User @relation(fields: [userID], references: [userID])
+  // address
+  address   String?
+  city      String?
+  latitude  Float?
+  longitude Float?
 
+  // verification
+  isVerified         Boolean            @default(false)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  user   User    @relation(fields: [userID], references: [userID])
+  orders Order[]
+}
+
+model RiderProfile {
+  riderID String @id @default(uuid())
+  userID  String @unique
+
+  // contact
+  phone        String?
+  profileImage String?
+
+  // vehicle
+  vehicle_type   VehicleType
+  vehicle_number String?
+  vehicle_image  String? // photo of the vehicle
+
+  // license
+  license_number String  @unique
+  license_image  String? // photo of license
+
+  // identity verification
+  governmentID       String? // national ID / passport number
+  governmentID_image String?
+
+  // verification
+  isVerified         Boolean            @default(false)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  verificationNote   String? // admin rejection reason
+
+  // availability & location
+  isAvailable Boolean @default(false)
+  latitude    Float?
+  longitude   Float?
+
+  // stats
+  rating          Float @default(0.0)
+  totalDeliveries Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userID], references: [userID])
   orders Order[]
 }
 
 model Order {
   ID Int @id @default(autoincrement())
 
-  //for relation foreign key
   customerID String
   riderID    String?
 
@@ -113,7 +158,6 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  //relationship
   customerProfile CustomerProfile @relation(fields: [customerID], references: [customerID])
   riderProfile    RiderProfile?   @relation(fields: [riderID], references: [riderID])
 
@@ -128,15 +172,22 @@ model Payment {
   method  String
   status  String
 
+  createdAt DateTime @default(now())
+
   order Order @relation(fields: [orderID], references: [ID])
 }
 
 model Notification {
-  ID      Int    @id @default(autoincrement())
-  orderID Int
-  message String
-  type    String
+  ID Int @id @default(autoincrement())
 
+  userID String
+  user   User   @relation(fields: [userID], references: [userID])
+
+  type    NotificationType
+  message String
+  isRead  Boolean          @default(false)
+
+  orderID   Int?
+  order     Order?   @relation(fields: [orderID], references: [ID])
   createdAt DateTime @default(now())
-  order     Order    @relation(fields: [orderID], references: [ID])
 }

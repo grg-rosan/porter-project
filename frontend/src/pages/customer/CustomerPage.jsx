@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useSocket } from "../../context/SocketContext";
 import { getAPI } from "../../api/api";
 import OrderFormComp from "./customerComps/OrderFormComp";
 import OrderStatus from "./customerComps/OrderStatus";
 import TrackingMap from "../../components/sharedComps/Map";
-import useCustomerOrderSocket from "../../hooks/customerSocket";
+import { useOrderSocket } from "../../hooks/useOrderSocket";
 import { useGetCoords } from "../../hooks/getCoords";
 
 const Icon = ({ name, size = 20, className = "" }) => (
@@ -16,8 +15,7 @@ const Icon = ({ name, size = 20, className = "" }) => (
   </span>
 );
 
-export default function CustomerPage() {
-  const { socket }                        = useSocket();
+const CustomerPage = () => {
   const [status,        setStatus]        = useState("idle");
   const [riderLocation, setRiderLocation] = useState(null);
   const [currentOrder,  setCurrentOrder]  = useState(null);
@@ -26,7 +24,15 @@ export default function CustomerPage() {
   const customerCoords   = useGetCoords();
   const customerLocation = { lat: customerCoords[0], lng: customerCoords[1] };
 
-  useCustomerOrderSocket({ setStatus, setCurrentOrder, setRiderLocation, setSheetOpen });
+  const { cancelOrder } = useOrderSocket("customer", {
+    onRiderLocation:  (data) => setRiderLocation({ lat: data.lat, lng: data.lng }),
+    onOrderAccepted:  (data) => { setStatus("accepted"); setCurrentOrder((o) => ({ ...o, riderID: data.riderID })); },
+    onOrderRejected:  ()     => { setStatus("idle"); setCurrentOrder(null); setSheetOpen(false); },
+    onJobStatus:      (data) => {
+      setStatus(data.status);
+      if (data.status === "delivered") setRiderLocation(null);
+    },
+  });
 
   const handleOrderRequest = async (formData) => {
     const data = await getAPI("customer/orders/create", "POST", formData);
@@ -42,10 +48,7 @@ export default function CustomerPage() {
   };
 
   const handleCancelOrder = () => {
-    socket.emit("order:cancel", {
-      orderID: currentOrder.ID,
-      riderID: currentOrder.riderID,
-    });
+    cancelOrder(currentOrder.ID, currentOrder.riderID);
     setStatus("idle");
     setCurrentOrder(null);
     setRiderLocation(null);
@@ -57,7 +60,7 @@ export default function CustomerPage() {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gray-100">
 
-      {/* ── MAP — fills entire screen behind everything ── */}
+      {/* MAP — fills entire screen behind everything */}
       <div className="absolute inset-0 z-0">
         <TrackingMap
           customerLocation={customerLocation}
@@ -65,28 +68,21 @@ export default function CustomerPage() {
         />
       </div>
 
-
-      {/* ── BOTTOM SHEET — slides up over the map ── */}
+      {/* BOTTOM SHEET — slides up over the map */}
       <div
         className="absolute left-0 right-0 z-20 bg-white rounded-t-3xl shadow-2xl transition-all duration-500 ease-in-out"
         style={{ bottom: 0, height: sheetOpen ? "68%" : "88px" }}
       >
-
-        {/* handle + toggle button */}
+        {/* handle + toggle */}
         <button
           className="w-full flex flex-col items-center pt-3 pb-2 focus:outline-none"
           onClick={() => setSheetOpen((o) => !o)}
         >
           <div className="w-10 h-1 rounded-full bg-gray-200 mb-3" />
 
-          {/* collapsed state — orange pill */}
           {!sheetOpen && (
             <div className="flex items-center gap-2 bg-orange-500 text-white rounded-2xl px-6 py-3 shadow-lg shadow-orange-200">
-              <Icon
-                name={isOrderActive ? "local_shipping" : "add_circle"}
-                size={20}
-                className="text-white"
-              />
+              <Icon name={isOrderActive ? "local_shipping" : "add_circle"} size={20} className="text-white" />
               <span className="text-sm font-bold" style={{ fontFamily: "'Syne', sans-serif" }}>
                 {isOrderActive ? "View Order" : "Book a Ride"}
               </span>
@@ -94,13 +90,9 @@ export default function CustomerPage() {
             </div>
           )}
 
-          {/* expanded state — title row */}
           {sheetOpen && (
             <div className="w-full flex items-center justify-between px-5">
-              <span
-                className="text-base font-bold text-gray-900"
-                style={{ fontFamily: "'Syne', sans-serif" }}
-              >
+              <span className="text-base font-bold text-gray-900" style={{ fontFamily: "'Syne', sans-serif" }}>
                 {isOrderActive ? "Order Status" : "New Order"}
               </span>
               <div className="flex items-center gap-1 text-gray-400">
@@ -111,23 +103,18 @@ export default function CustomerPage() {
           )}
         </button>
 
-        {/* ── SHEET CONTENT ── */}
+        {/* SHEET CONTENT */}
         {sheetOpen && (
           <div className="overflow-y-auto px-5 pb-10 h-[calc(100%-64px)]">
 
-            {/* IDLE → show booking form */}
             {status === "idle" && (
               <OrderFormComp onSubmit={handleOrderRequest} />
             )}
 
-            {/* ORDER ACTIVE → show status + actions */}
             {isOrderActive && (
               <div className="flex flex-col gap-4 pt-2">
-
-                {/* colored status banner — swaps automatically as status changes */}
                 <OrderStatus status={status} />
 
-                {/* cancel — hide once delivered or cancelled */}
                 {status !== "delivered" && status !== "cancelled" && (
                   <button
                     onClick={handleCancelOrder}
@@ -137,7 +124,6 @@ export default function CustomerPage() {
                   </button>
                 )}
 
-                {/* done button after delivery */}
                 {status === "delivered" && (
                   <button
                     onClick={() => { setStatus("idle"); setSheetOpen(false); }}
@@ -146,7 +132,6 @@ export default function CustomerPage() {
                     Done
                   </button>
                 )}
-
               </div>
             )}
 
@@ -155,4 +140,6 @@ export default function CustomerPage() {
       </div>
     </div>
   );
-}
+};
+
+export default CustomerPage

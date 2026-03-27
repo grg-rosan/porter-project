@@ -4,10 +4,13 @@ import {config} from "dotenv";
 import {connectDB, disconnectDB} from  "./config/db.config.js"
 
 //Import user Routes
-import authRoutes from "./modules/auth/auth.route.js"
-import customerRouter from "./modules/customer/customer.route.js";
-import  riderRoute from "./modules/rider/riderRoute.js"
+import authRoute from "./modules/auth/auth.route.js"
+import customerRoute from "./modules/customer/customer.route.js";
+import  riderRoute from "./modules/rider/rider.route.js"
+import adminRoute from "./modules/admin/admin.route.js"
 import cookieParser from "cookie-parser";
+import AppError from "./utils/AppError.js";
+import globalMiddleware from "./middleware/errorMiddleware.js";
 
 config();
 connectDB();
@@ -26,35 +29,15 @@ app.use(cookieParser());
 
 
 //API routes
-app.use("/api/auth",authRoutes)
-app.use("/api/customer",customerRouter)
+app.use("/api/auth",authRoute)
+app.use("/api/customer",customerRoute)
 app.use("/api/rider",riderRoute)
+app.use("/api/admin",adminRoute)
 
-
-// Handle unhandled promise rejections (e.g., database connection errors)
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err);
-  server.close(async () => {
-    await disconnectDB();
-    process.exit(1);
-  });
+app.all("*", (req, res, next) => {
+  next(new AppError(`Can't find ${req.url} on this server`, 404));
 });
 
-// Handle uncaught exceptions
-process.on("uncaughtException", async (err) => {
-  console.error("Uncaught Exception:", err);
-  await disconnectDB();
-  process.exit(1);
-});
-
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully");
-  server.close(async () => {
-    await disconnectDB();
-    process.exit(0);
-  });
-});
-
+app.use(globalMiddleware)
 
 export default app;

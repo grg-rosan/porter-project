@@ -1,5 +1,7 @@
-import { useState, useRef,} from "react";
+import { useState, useRef } from "react";
 import VerificationModal from "../../VerificationModal";
+import { useAuth } from "../../../context/AuthContext";
+import { useUser } from "../../../context/userContext";
 
 const NAV_LINKS = [
   { icon: "location_city", label: "City" },
@@ -26,16 +28,26 @@ const Icon = ({ name, size = 20, className = "" }) => (
 );
 
 export default function RiderNavbar() {
+  const { user, logout } = useAuth;
+  const { profile, isVerified } = useUser();
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("City");
   const [verifyOpen, setVerifyOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const initials = user?.name?.charAt(0).toUpperCase() ?? "R";
+
   const openVerify = () => {
     setProfileOpen(false);
     setMobileMenuOpen(false);
     setVerifyOpen(true);
+  };
+
+  const handleMenuClick = (item) => {
+    if (item.danger) logout();
+    setProfileOpen(false);
   };
 
   return (
@@ -76,7 +88,6 @@ export default function RiderNavbar() {
 
             {/* Right side */}
             <div className="flex items-center gap-3">
-              {/* Driver mode — desktop only */}
               <button className="hidden md:flex items-center gap-1.5 bg-[#b5e048] hover:bg-[#a4cf3a] text-gray-800 text-xs font-bold px-4 py-2 rounded-full transition-all">
                 <Icon name="drive_eta" size={16} />
                 Driver mode
@@ -88,36 +99,64 @@ export default function RiderNavbar() {
                   onClick={() => setProfileOpen((p) => !p)}
                   className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#c0392b] flex items-center justify-center shrink-0">
-                    <span className="text-white font-bold text-sm">R</span>
+                  {/* unverified dot on avatar */}
+                  <div className="relative">
+                    <div className="w-8 h-8 rounded-full bg-[#c0392b] flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-sm">{initials}</span>
+                    </div>
+                    {!isVerified && (
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 border-2 border-white rounded-full" />
+                    )}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-gray-800 leading-none">Roshan</p>
+                    <p className="text-sm font-semibold text-gray-800 leading-none">{user?.name}</p>
                     <div className="flex items-center gap-0.5 mt-0.5">
                       {[...Array(4)].map((_, i) => (
                         <Icon key={i} name="star" size={11} className="text-[#F5A623]" />
                       ))}
                       <Icon name="star_half" size={11} className="text-[#F5A623]" />
-                      <span className="text-[10px] text-gray-400 ml-1">4.8</span>
+                      <span className="text-[10px] text-gray-400 ml-1">
+                        {profile?.rating ?? "4.8"}
+                      </span>
                     </div>
                   </div>
                   <Icon name={profileOpen ? "expand_less" : "expand_more"} size={18} className="text-gray-400" />
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50">
-                    {/* ── Profile header with Verify badge ── */}
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50">
+
+                    {/* profile header */}
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-800">Roshan</p>
-                      <button
-                        onClick={openVerify}
-                        className="flex items-center gap-1 mt-1.5 text-xs bg-amber-50 border
-                                   border-amber-200 text-amber-700 font-semibold px-2 py-0.5
-                                   rounded-full hover:bg-amber-100 transition-colors"
-                      >
-                        <Icon name="verified_user" size={12} className="text-amber-500" />
-                        Verify account
-                      </button>
+                      <p className="text-sm font-semibold text-gray-800">{user?.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{profile?.vehicle_type}</p>
+
+                      {/* unverified alert */}
+                      {!isVerified && (
+                        <div className="mt-2.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Icon name="warning" size={13} className="text-amber-500" />
+                            <p className="text-xs font-semibold text-amber-900">Not verified</p>
+                          </div>
+                          <p className="text-xs text-amber-700 leading-snug">
+                            Upload your documents to start receiving orders.
+                          </p>
+                          <button
+                            onClick={openVerify}
+                            className="mt-1.5 text-xs font-semibold text-amber-800 underline hover:text-amber-900"
+                          >
+                            Verify now →
+                          </button>
+                        </div>
+                      )}
+
+                      {/* verified badge */}
+                      {isVerified && (
+                        <div className="mt-1.5 flex items-center gap-1">
+                          <Icon name="verified" size={13} className="text-green-500" />
+                          <span className="text-xs text-green-600 font-medium">Verified</span>
+                        </div>
+                      )}
                     </div>
 
                     {PROFILE_MENU.map((item, i) =>
@@ -126,10 +165,10 @@ export default function RiderNavbar() {
                       ) : (
                         <button
                           key={item.label}
+                          onClick={() => handleMenuClick(item)}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
                             item.danger ? "text-red-500 hover:bg-red-50" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          onClick={() => setProfileOpen(false)}
                         >
                           <Icon name={item.icon} size={18} className={item.danger ? "text-red-400" : "text-gray-400"} />
                           {item.label}
@@ -154,32 +193,62 @@ export default function RiderNavbar() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white">
+            <div className="px-4 py-4 border-b border-gray-100">
 
-            {/* Profile row with verify button */}
-            <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-[#c0392b] flex items-center justify-center shrink-0">
-                <span className="text-white font-bold">R</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800">Roshan</p>
-                <div className="flex items-center gap-0.5 mt-0.5">
-                  {[...Array(4)].map((_, i) => (
-                    <Icon key={i} name="star" size={11} className="text-[#F5A623]" />
-                  ))}
-                  <Icon name="star_half" size={11} className="text-[#F5A623]" />
-                  <span className="text-[10px] text-gray-400 ml-1">4.8 (0)</span>
+              {/* profile row */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-[#c0392b] flex items-center justify-center shrink-0">
+                    <span className="text-white font-bold">{initials}</span>
+                  </div>
+                  {!isVerified && (
+                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-amber-400 border-2 border-white rounded-full" />
+                  )}
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800">{user?.name}</p>
+                  <div className="flex items-center gap-0.5 mt-0.5">
+                    {[...Array(4)].map((_, i) => (
+                      <Icon key={i} name="star" size={11} className="text-[#F5A623]" />
+                    ))}
+                    <Icon name="star_half" size={11} className="text-[#F5A623]" />
+                    <span className="text-[10px] text-gray-400 ml-1">
+                      {profile?.rating ?? "4.8"} (0)
+                    </span>
+                  </div>
+                </div>
+                {isVerified ? (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Icon name="verified" size={15} className="text-green-500" />
+                    <span className="text-xs text-green-600 font-medium">Verified</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={openVerify}
+                    className="flex items-center gap-1 text-xs bg-amber-50 border border-amber-200
+                               text-amber-800 font-semibold px-2.5 py-1 rounded-full
+                               hover:bg-amber-100 transition-colors shrink-0"
+                  >
+                    <Icon name="warning" size={13} className="text-amber-500" />
+                    Not verified
+                  </button>
+                )}
               </div>
-              {/* ── Verify badge on mobile profile row ── */}
-              <button
-                onClick={openVerify}
-                className="flex items-center gap-1 text-xs bg-amber-50 border border-amber-200
-                           text-amber-700 font-semibold px-2.5 py-1 rounded-full
-                           hover:bg-amber-100 transition-colors shrink-0"
-              >
-                <Icon name="verified_user" size={13} className="text-amber-500" />
-                Verify
-              </button>
+
+              {/* unverified alert block on mobile */}
+              {!isVerified && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                  <p className="text-xs text-amber-700 leading-snug">
+                    Upload your documents to start receiving orders.
+                  </p>
+                  <button
+                    onClick={openVerify}
+                    className="mt-1 text-xs font-semibold text-amber-800 underline hover:text-amber-900"
+                  >
+                    Verify now →
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* All links */}
@@ -207,7 +276,7 @@ export default function RiderNavbar() {
                 ) : (
                   <button
                     key={item.label}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => { if (item.danger) logout(); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                       item.danger ? "text-red-500 hover:bg-red-50" : "text-gray-600 hover:bg-gray-50"
                     }`}
@@ -229,7 +298,6 @@ export default function RiderNavbar() {
         )}
       </nav>
 
-      {/* ── Verification modal — lives outside <nav> so it overlays everything ── */}
       <VerificationModal open={verifyOpen} onClose={() => setVerifyOpen(false)} />
     </>
   );
