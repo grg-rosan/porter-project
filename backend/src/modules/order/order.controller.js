@@ -1,7 +1,7 @@
 import { cancel_Order, createOrder } from "./order.service.js";
 import orderMessageProducer from "./order.producer.js";
-import getDistance from "../../shared/utils/getDistance.js";
-import calculateFare from "../../shared/utils/calculateFare.js";
+import getDistance from "../../utils/getDistance.js";
+import calculateFare from "../../utils/calculateFare.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { sendNotification } from "../../utils/notification.js";
 
@@ -13,7 +13,7 @@ export const estimateFare = asyncHandler(async (req, res) => {
 
   const { distance_km, duration_min } = await getDistance(pickup, dropoff);
 
-  const estimate = calculateFare({
+  const estimate = await calculateFare({
     distance_km,
     duration_min,
     weight_kg: parseFloat(weight_kg),
@@ -21,6 +21,7 @@ export const estimateFare = asyncHandler(async (req, res) => {
   });
   res.status(200).json({ status: "success", estimate: estimate });
 });
+
 export const order_create = asyncHandler(async (req, res) => {
   const order = await createOrder({ ...req.body, userID: req.user.userID });
 
@@ -46,9 +47,10 @@ export const order_create = asyncHandler(async (req, res) => {
     order,
   });
 });
+
 export const cancelOrder = asyncHandler(async (req, res) => {
   const orderID = parseInt(req.params.orderID);
-  const order = await cancel_Order(orderID);
+  const order = await cancel_Order(orderID, req.user.userID);
   const notifications = [];
 
   notifications.push(
@@ -59,14 +61,14 @@ export const cancelOrder = asyncHandler(async (req, res) => {
       orderID,
     ),
   );
-  if (order.riderID) {
+  if (order.riderProfile?.userID) {
     notifications.push(
       sendNotification(
         order.riderID,
         "ORDER_CANCELLED",
         "The order has been cancelled by the customer",
         orderID,
-      )
+      ),
     );
   }
   await Promise.allSettled(notifications);
