@@ -1,7 +1,10 @@
 import express from "express"
 import { authMiddleware } from "../auth/auth.middleware.js"
-import { roleMiddleware } from "../../shared/middleware/rolemiddleware.js"
+import { roleMiddleware } from "../../shared/middleware/role.middleware.js"
 import { getRiderProfile, tripHistory, updateAvailability } from "./rider.controller.js"
+import { uploadRiderDocs } from "../../middleware/upload.middleware.js"
+import { submitDocs } from "./rider.controller.js"
+import { submitComplaint,myComplaints } from "../complaints/complaints.controller.js"
 
 const router = express.Router()
 
@@ -17,7 +20,10 @@ router.patch("/availability", updateAvailability)
 
 router.get("/trips/history",tripHistory)
 
-router.post("/docs",submitDocs)
+router.post("/docs",uploadRiderDocs ,submitDocs)
+//complaints 
+router.post("/complaints",     submitComplaint);
+router.get("/complaints/my",   myComplaints);
 
 export default router
 

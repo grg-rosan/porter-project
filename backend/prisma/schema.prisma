@@ -56,6 +56,35 @@ enum NotificationType {
   COMPLAINT
   NEW_RIDER_APPLICATION
 }
+enum ComplaintStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ComplaintType {
+  RIDER_BEHAVIOR
+  LATE_DELIVERY
+  WRONG_ITEM
+  PAYMENT_ISSUE
+  OTHER
+}
+
+enum ComplaintRole {
+  CUSTOMER
+  RIDER
+}
+
+model FareConfig {
+  id          Int         @id @default(autoincrement())
+  vehicleType VehicleType @unique
+  baseFare    Float
+  perKm       Float
+  perKg       Float
+  minFare     Float
+  updatedAt   DateTime    @updatedAt
+}
 
 model User {
   userID   String @id @default(uuid())
@@ -64,64 +93,71 @@ model User {
   password String
   role     Role
 
+  // identity verification — applies to BOTH customer and rider
+  verificationStatus    VerificationStatus @default(UNVERIFIED)
+  verificationNote      String?
+  governmentID          String?            @unique
+  governmentID_image    String?
+  governmentID_publicId String?
+
   isBlocked   Boolean   @default(false)
   blockedAt   DateTime?
-  blockReason String?   
-  createdAt DateTime @default(now())
+  blockReason String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   riderProfile    RiderProfile?
   customerProfile CustomerProfile?
   notifications   Notification[]
+  complaintsFiled  Complaint[] @relation("ComplaintsFiled")
+  complaintsAgainst Complaint[] @relation("ComplaintsAgainst")
 }
 
 model CustomerProfile {
-  customerID String @id @default(uuid())
-  userID     String @unique
+  customerID String  @id @default(uuid())
+  userID     String  @unique
+  phone      String?
 
-  // contact
-  phone        String?
-  profileImage String?
+  profileImage          String?
+  profileImage_publicId String?
 
-  // address
   address   String?
   city      String?
   latitude  Float?
   longitude Float?
 
-  // verification
-  isVerified         Boolean            @default(false)
-  verificationStatus VerificationStatus @default(UNVERIFIED)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   user   User    @relation(fields: [userID], references: [userID])
-  orders Order[]
+  orders Order[] @relation()
 }
 
 model RiderProfile {
   riderID String @id @default(uuid())
   userID  String @unique
 
-  // contact
-  phone        String?
-  profileImage String?
+  phone                 String?
+  profileImage          String?
+  profileImage_publicId String?
 
-  // vehicle
-  vehicle_type   VehicleType
-  vehicle_number String?
-  vehicle_image  String? // photo of the vehicle
+  vehicle_type     VehicleType
+  vehicle_number   String?
+  vehicle_model    String?
+  vehicle_image    String? // photo of the vehicle
+  vehicle_publicId String?
 
   // license
-  license_number String  @unique
-  license_image  String? // photo of license
+  license_number   String  @unique
+  license_image    String? // photo of license
+  license_publicId String?
 
   // identity verification
-  governmentID       String? // national ID / passport number
-  governmentID_image String?
+  governmentID          String? // national ID / passport number
+  governmentID_image    String?
+  governmentID_publicId String?
 
   // verification
-  isVerified         Boolean            @default(false)
   verificationStatus VerificationStatus @default(UNVERIFIED)
   verificationNote   String? // admin rejection reason
 
@@ -163,6 +199,7 @@ model Order {
 
   payment      Payment[]
   notification Notification[]
+  complaints Complaint[]
 }
 
 model Payment {
@@ -190,4 +227,29 @@ model Notification {
   orderID   Int?
   order     Order?   @relation(fields: [orderID], references: [ID])
   createdAt DateTime @default(now())
+}
+
+model Complaint {
+  ID Int @id @default(autoincrement())
+
+  // who filed it — store userID directly, not profile ID
+  filedByUserID String
+  filedByRole   ComplaintRole
+
+  orderID Int
+
+  // who it's against — nullable, some complaints are about the platform
+  againstUserID String?
+
+  type        ComplaintType
+  description String
+  status      ComplaintStatus @default(OPEN)
+  adminNote   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  filedBy User  @relation("ComplaintsFiled", fields: [filedByUserID], references: [userID])
+  against User? @relation("ComplaintsAgainst", fields: [againstUserID], references: [userID])
+  order   Order @relation(fields: [orderID], references: [ID])
 }

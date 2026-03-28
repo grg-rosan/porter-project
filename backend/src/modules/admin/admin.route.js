@@ -1,138 +1,45 @@
-import { prisma } from "../../config/db.config.js"
-import AppError from "../../utils/AppError.js"
-import asyncHandler from "../../utils/asyncHandler.js"
+import express from "express"
+import { authMiddleware } from "../auth/auth.middleware.js"
+import { roleMiddleware } from "../../shared/middleware/role.middleware.js"
 import {
-  getPendingDocsService,
-  reviewDocsService,
-  getRiderVerificationsService,
-  getRiderDetailsService,
-  getComplaintsService,
-  resolveComplaintService,
-  getAnalyticsService,
-  blockUserService,
-  unblockUserService,
-} from "./admin.service.js"
+  getDashboardStats,
+  getPendingDocs,
+  getRiderVerifications,
+  getRiderDetails,
+  reviewDocs,
+  getAnalytics,
+  blockUser,
+  unblockUser,
+} from "./admin.controller.js"
+import {listComplaints,handleComplaint} from "../complaints/complaints.controller.js"
+
+const router = express.Router()
+
+router.use(authMiddleware)
+router.use(roleMiddleware("ADMIN"))
 
 // dashboard
-export const getDashboardStats = asyncHandler(async (req, res) => {
-  const [
-    totalRides,
-    totalRevenue,
-    activeRiders,
-    pendingVerify,
-    openComplaints,
-    blockedUsers,
-    weeklyRides,
-  ] = await Promise.all([
-    prisma.order.count(),
-    prisma.order.aggregate({
-      _sum:  { total_amount: true },
-      where: { payment_status: "PAID" },
-    }),
-    prisma.riderProfile.count({ where: { isAvailable: true } }),
-    prisma.riderProfile.count({ where: { verificationStatus: "PENDING" } }),
-    prisma.notification.count({ where: { type: "COMPLAINT", isRead: false } }),
-    prisma.user.count({ where: { isBlocked: true } }),
-    prisma.order.groupBy({
-      by:    ["createdAt"],
-      _count: { ID: true },
-      where: { createdAt: { gte: getStartOfWeek(), lte: new Date() } },
-    }),
-  ])
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      totalRides,
-      revenue:        totalRevenue._sum.total_amount ?? 0,
-      activeRiders,
-      pendingVerify,
-      openComplaints,
-      blockedUsers,
-      weeklyRides:    formatWeeklyRides(weeklyRides),
-    },
-  })
-})
-
-const getStartOfWeek = () => {
-  const now  = new Date()
-  const day  = now.getDay()
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1)
-  const monday = new Date(now.setDate(diff))
-  monday.setHours(0, 0, 0, 0)
-  return monday
-}
-
-const formatWeeklyRides = (rides) => {
-  const days   = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const counts = { Mon:0, Tue:0, Wed:0, Thu:0, Fri:0, Sat:0, Sun:0 }
-  rides.forEach(ride => {
-    const day = new Date(ride.createdAt)
-      .toLocaleDateString("en-US", { weekday: "short" })
-    if (counts[day] !== undefined) counts[day] += ride._count.ID
-  })
-  return days.map(day => ({ day, count: counts[day] }))
-}
-
-// verification
-export const getPendingDocs = asyncHandler(async (req, res) => {
-  const docs = await getPendingDocsService()
-  res.status(200).json({ status: "success", count: docs.length, data: docs })
-})
-
-export const getRiderVerifications = asyncHandler(async (req, res) => {
-  const { status } = req.query
-  if (status && !["PENDING", "VERIFIED", "REJECTED", "UNVERIFIED"].includes(status))
-    throw new AppError("Invalid status filter", 400)
-  const riders = await getRiderVerificationsService(status)
-  res.status(200).json({ status: "success", count: riders.length, data: riders })
-})
-
-export const getRiderDetails = asyncHandler(async (req, res) => {
-  const profile = await getRiderDetailsService(req.params.riderID)
-  res.status(200).json({ status: "success", data: profile })
-})
-
-export const reviewDocs = asyncHandler(async (req, res) => {
-  const { status, reason } = req.body
-  const { riderID }        = req.params
-
-  if (!["VERIFIED", "REJECTED"].includes(status))
-    throw new AppError("Status must be VERIFIED or REJECTED", 400)
-  if (status === "REJECTED" && !reason)
-    throw new AppError("Rejection reason is required", 400)
-
-  const docs = await reviewDocsService(riderID, status, reason)
-  res.status(200).json({ status: "success", data: docs })
-})
-
-// complaints
-export const getComplaints = asyncHandler(async (req, res) => {
-  const { status } = req.query  // ?status=OPEN or RESOLVED
-  const complaints = await getComplaintsService(status)
-  res.status(200).json({ status: "success", count: complaints.length, data: complaints })
-})
-
-export const resolveComplaint = asyncHandler(async (req, res) => {
-  const complaint = await resolveComplaintService(parseInt(req.params.id))
-  res.status(200).json({ status: "success", data: complaint })
-})
+router.get("/dashboard", getDashboardStats)
 
 // analytics
-export const getAnalytics = asyncHandler(async (req, res) => {
-  const data = await getAnalyticsService()
-  res.status(200).json({ status: "success", data })
-})
+router.get("/analytics",getAnalytics)
+
+// verification
+router.get("/verifications",      getRiderVerifications)   // ?status=PENDING|VERIFIED|REJECTED
+router.get("/verifications/docs", getPendingDocs)
+router.get("/verifications/:riderID",        getRiderDetails)
+router.patch("/verifications/:riderID/review", reviewDocs)
+
+// complaints
+router.get("/complaints", listComplaints);
+router.patch("/:id/resolve", handleComplaint);
 
 // user management
-export const blockUser = asyncHandler(async (req, res) => {
-  const { reason } = req.body
-  if (!reason) throw new AppError("Block reason is required", 400)
-  const user = await blockUserService(req.params.userID, reason)
-  res.status(200).json({ status: "success", data: user })
-})
+router.patch("/users/:userID/block",         blockUser)
+router.patch("/users/:userID/unblock",       unblockUser)
 
-export const unblockUser = asyncHandler(async (req, res) => {
-  const user = await unblockUserService(req.params.userID)
-  res.status(200).json({ status: "success", data: user })
-})
+// admin.routes.js
+router.get("/fare-config",                getFareConfigs);
+router.patch("/fare-config/:vehicleType", updateFareConfig);
+
+export default router

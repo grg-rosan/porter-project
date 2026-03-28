@@ -12,6 +12,10 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-export const upload = multer({
+export const uploadRiderDocs = multer({
     storage, fileFilter, limits:{fileSize: 5*1024* 1024}
-})
+}).fields([
+  {name:"license", maxCount:1},
+  {name:"governmentID", maxCount:1},
+  {name:"vehicle_img", maxCount:1},
+])

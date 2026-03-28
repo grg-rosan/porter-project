@@ -64,32 +64,6 @@ export const reviewDocsService = async (riderID, status, reason) => {
   })
 }
 
-// complaints
-export const getComplaintsService = async (status) => {
-  return await prisma.notification.findMany({
-    where: {
-      type:   "COMPLAINT",
-      ...(status ? { isRead: status === "RESOLVED" } : {}),
-    },
-    include: {
-      user:  { select: { name: true, email: true } },
-      order: { select: { ID: true, order_status: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-}
-
-export const resolveComplaintService = async (id) => {
-  const complaint = await prisma.notification.findUnique({ where: { ID: id } })
-  if (!complaint)       throw new AppError("Complaint not found", 404)
-  if (complaint.isRead) throw new AppError("Complaint already resolved", 400)
-
-  return await prisma.notification.update({
-    where: { ID: id },
-    data:  { isRead: true },
-  })
-}
-
 // analytics
 export const getAnalyticsService = async () => {
   const [ordersByStatus, revenueByDay, riderStats] = await Promise.all([
@@ -140,3 +114,23 @@ export const unblockUserService = async (userID) => {
     data:  { isBlocked: false, blockedAt: null, blockReason: null },
   })
 }
+
+// admin.service.js
+export const getFareConfigsService = async () => {
+  return await prisma.fareConfig.findMany({ orderBy: { vehicleType: "asc" } });
+};
+
+export const updateFareConfigService = async (vehicleType, data) => {
+  const config = await prisma.fareConfig.findUnique({ where: { vehicleType } });
+  if (!config) throw new AppError(`No fare config for ${vehicleType}`, 404);
+
+  return await prisma.fareConfig.update({
+    where: { vehicleType },
+    data: {
+      ...(data.baseFare !== undefined && { baseFare: data.baseFare }),
+      ...(data.perKm    !== undefined && { perKm:    data.perKm    }),
+      ...(data.perKg    !== undefined && { perKg:    data.perKg    }),
+      ...(data.minFare  !== undefined && { minFare:  data.minFare  }),
+    },
+  });
+};
