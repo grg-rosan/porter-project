@@ -6,7 +6,7 @@ let channel = null;
 export const connectRabbitMq = async()  => {
     try {
         if( connection && channel) return {connection,channel}
-        connection = await amqp.connect("amqp://localhost");// move this url to .env file
+        connection = await amqp.connect(process.env.RABBITMQ_URL);// move this url to .env file
         channel = await connection.createChannel()
 
         console.log("rabbitmq connected successfully")

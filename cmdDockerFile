@@ -1,0 +1,44 @@
+🐳 Docker Compose Commands
+cmddocker-compose up                  # Start all containers (foreground)
+docker-compose up -d               # Start all containers (background)
+docker-compose up -d --build       # Rebuild images and start
+docker-compose up -d --build backend  # Rebuild specific service only
+
+docker-compose down                # Stop and remove containers
+docker-compose down -v             # Stop and remove containers + volumes (wipes DB!)
+
+docker-compose restart             # Restart all containers
+docker-compose restart backend     # Restart specific container
+
+docker-compose ps                  # List running containers
+docker-compose logs                # Show all logs
+docker-compose logs -f             # Follow live logs
+docker-compose logs -f backend     # Follow logs of specific service
+
+📦 Docker Basic Commands
+cmddocker ps                          # List running containers
+docker ps -a                       # List all containers (including stopped)
+
+docker images                      # List all images
+docker image rm <image_name>       # Delete an image
+
+docker start <container_name>      # Start a stopped container
+docker stop <container_name>       # Stop a running container
+docker restart <container_name>    # Restart a container
+docker rm <container_name>         # Remove a container
+
+🔍 Inspect & Debug
+cmddocker-compose logs -f backend           # Live logs of a service
+docker logs <container_name>             # Logs of a container
+
+docker exec -it <container_name> sh      # Open shell inside container
+docker exec -it <container_name> bash    # Open bash inside container (if available)
+
+docker inspect <container_name>          # Full details of a container
+docker stats                             # Live CPU/memory usage of all containers
+
+🧹 Cleanup Commands
+cmddocker system prune                # Remove all unused containers, images, networks
+docker system prune -a             # Remove everything unused (including images)
+docker volume prune                # Remove unused volumes
+docker image prune                 # Remove dangling images

@@ -1,7 +1,7 @@
 import { cancel_Order, createOrderService } from "./order.service.js";
 import orderMessageProducer from "./order.producer.js";
 import getDistance from "../../utils/getDistance.js";
-import calculateFare from "../../utils/calculateFare.js";
+import {calculateFare} from "../../utils/calculateFare.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { sendNotification } from "../../utils/notification.js";
 

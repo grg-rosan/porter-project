@@ -1,5 +1,5 @@
 import { prisma } from "../../config/db.config.js";
-import calculateFare from "../../utils/calculateFare.js";
+import {calculateFare} from "../../utils/calculateFare.js";
 import getDistance from "../../utils/getDistance.js";
 import AppError from "../../utils/AppError.js";
 import { SURGE_FALLBACK } from "../../config/surge.config.js"
@@ -84,8 +84,6 @@ export const cancel_Order = async (orderID, userID) => {
   });
 };
 
-import { prisma } from "../config/db.config.js";
-import { SURGE_FALLBACK } from "../config/surge.config.js";
 
 export const getSurgeMultiplierService = async () => {
   try {
