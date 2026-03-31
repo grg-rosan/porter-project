@@ -1,10 +1,7 @@
 import { prisma } from "../../config/db.config.js";
 import AppError from "../../utils/AppError.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import {
-  getComplaintsService,
-  resolveComplaintService,
-} from "../complaints/complaints.service.js";
+import { getSurgeStatusService, updateSurgeService } from "../../services/surge.service.js";
 import {
   getPendingDocsService,
   reviewDocsService,
@@ -16,7 +13,9 @@ import {
   updateFareConfigService,
   getFareConfigsService,
 } from "./admin.service.js";
-// admin.controller.js
+import { getComplaintsService, resolveComplaintService } from "../complaints/complaints.service.js";
+
+
 
 // dashboard
 export const getDashboardStats = asyncHandler(async (req, res) => {
@@ -119,15 +118,15 @@ export const reviewDocs = asyncHandler(async (req, res) => {
 
 // complaints
 export const getComplaints = asyncHandler(async (req, res) => {
-  const { status } = req.query; // ?status=OPEN or RESOLVED
-  const complaints = await getComplaintsService(status);
+  const { status,page, limit } = req.query; // ?status=OPEN or RESOLVED
+  const complaints = await getComplaintsService({status,page, limit});
   res
     .status(200)
-    .json({ status: "success", count: complaints.length, data: complaints });
+    .json({ status: "success", ...complaints });
 });
 
 export const resolveComplaint = asyncHandler(async (req, res) => {
-  const complaint = await resolveComplaintService(parseInt(req.params.id));
+  const complaint = await resolveComplaintService(parseInt(req.params.id),req.body);
   res.status(200).json({ status: "success", data: complaint });
 });
 
@@ -162,4 +161,23 @@ export const updateFareConfig = asyncHandler(async (req, res) => {
 
   const data = await updateFareConfigService(vehicleType, req.body);
   res.json({ status: "success", data });
+});
+
+export const getSurgeStatus = asyncHandler(async(req, res, next) => {
+  try {
+    const surge = await getSurgeStatusService();
+    res.status(200).json({ status: "success", data: surge });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export const updateSurge = asyncHandler(async (req, res, next) => {
+  try {
+    const { isActive, multiplier, reason } = req.body;
+    const surge = await updateSurgeService({ isActive, multiplier, reason });
+    res.status(200).json({ status: "success", data: surge });
+  } catch (err) {
+    next(err);
+  }
 });

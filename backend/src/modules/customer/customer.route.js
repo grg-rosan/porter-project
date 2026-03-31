@@ -1,6 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../auth/auth.middleware.js";
-import { roleMiddleware } from "../../shared/middleware/role.middleware.js";
+import { roleMiddleware } from "../../middleware/role.middleware.js";
 import orderRouter from "../order/order.route.js"
 import { cancelOrder } from "../order/order.controller.js";
 import { submitComplaint,myComplaints } from "../complaints/complaints.controller.js";

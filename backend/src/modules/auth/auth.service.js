@@ -1,6 +1,6 @@
 import { prisma } from "../../config/db.config.js";
 import bcrypt from "bcryptjs";
-import { createCustomerProfile, createRiderProfile } from "../../shared/utils/profileCreator.js";
+import { createCustomerProfile, createRiderProfile } from "../../utils/profileCreator.js";
 import AppError from "../../utils/AppError.js";
 
 const registerUser = async (userData) => {

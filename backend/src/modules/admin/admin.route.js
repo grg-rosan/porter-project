@@ -1,6 +1,6 @@
 import express from "express"
 import { authMiddleware } from "../auth/auth.middleware.js"
-import { roleMiddleware } from "../../shared/middleware/role.middleware.js"
+import { roleMiddleware } from "../../middleware"
 import {
   getDashboardStats,
   getPendingDocs,
@@ -10,9 +10,12 @@ import {
   getAnalytics,
   blockUser,
   unblockUser,
+  getFareConfigs,
+  updateFareConfig,
+  getSurgeStatus, 
+  updateSurge 
 } from "./admin.controller.js"
-import {listComplaints,handleComplaint} from "../complaints/complaints.controller.js"
-
+import { getComplaints,resolveComplaint  } from "./admin.controller.js"
 const router = express.Router()
 
 router.use(authMiddleware)
@@ -31,15 +34,26 @@ router.get("/verifications/:riderID",        getRiderDetails)
 router.patch("/verifications/:riderID/review", reviewDocs)
 
 // complaints
-router.get("/complaints", listComplaints);
-router.patch("/:id/resolve", handleComplaint);
+router.get("/complaints", getComplaints);
+router.patch("/complaints/:id/resolve", resolveComplaint);
 
 // user management
 router.patch("/users/:userID/block",         blockUser)
 router.patch("/users/:userID/unblock",       unblockUser)
 
-// admin.routes.js
+// vehicle fare
 router.get("/fare-config",                getFareConfigs);
 router.patch("/fare-config/:vehicleType", updateFareConfig);
 
+router.get("/surge",   getSurgeStatus);
+router.patch("/surge", updateSurge);
 export default router
+
+
+{/**
+  **How admin handles complaints — full flow:**
+```
+GET  /api/v1/admin/complaints              → list all with pagination
+GET  /api/v1/admin/complaints?status=OPEN  → filter by status
+PATCH /api/v1/admin/complaints/:id/resolve → resolve or dismiss
+  */}

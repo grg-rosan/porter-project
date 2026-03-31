@@ -1,4 +1,4 @@
-import { prisma } from "../../config/db.config.js";
+import { prisma } from "../../src/config/db.config.js";
 
 export const historyService = async (userID, role , filter  = "all") => {
     const now = Date.now()

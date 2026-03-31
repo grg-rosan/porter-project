@@ -1,4 +1,4 @@
-import { cancel_Order, createOrder } from "./order.service.js";
+import { cancel_Order, createOrderService } from "./order.service.js";
 import orderMessageProducer from "./order.producer.js";
 import getDistance from "../../utils/getDistance.js";
 import calculateFare from "../../utils/calculateFare.js";
@@ -8,10 +8,10 @@ import { sendNotification } from "../../utils/notification.js";
 export const estimateFare = asyncHandler(async (req, res) => {
   const { pickup_address, drop_address, weight_kg, vehicle_type } = req.body;
 
-  const pickup = JSON.parse(pickup_address);
-  const dropoff = JSON.parse(drop_address);
+  const pick_up = JSON.parse(pickup_address);
+  const drop_off = JSON.parse(drop_address);
 
-  const { distance_km, duration_min } = await getDistance(pickup, dropoff);
+  const { distance_km, duration_min } = await getDistance(pick_up, drop_off);
 
   const estimate = await calculateFare({
     distance_km,
@@ -31,8 +31,8 @@ export const order_create = asyncHandler(async (req, res) => {
       customerId: order.customerID,
       vehicleType: order.vehicle_type,
       riderId: order.riderID, // assigned rider
-      pickup: order.pickup_address,
-      dropoff: order.drop_address,
+      pick_up: order.pickup_address,
+      drop_off: order.drop_address,
       amount: order.total_amount,
     }),
     await sendNotification(

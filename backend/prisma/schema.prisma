@@ -86,6 +86,15 @@ model FareConfig {
   updatedAt   DateTime    @updatedAt
 }
 
+model SurgeConfig {
+  id          Int      @id @default(autoincrement())
+  isActive    Boolean
+  multiplier  Float
+  reason      String?
+  startedAt   DateTime
+  endedAt     DateTime? 
+}
+
 model User {
   userID   String @id @default(uuid())
   name     String
@@ -187,8 +196,10 @@ model Order {
   drop_address   String
   vehicle_type   VehicleType
   order_status   OrderStatus   @default(PENDING)
-  order_weight   Float
-  total_amount   Float
+  weight_kg   Float
+  surgeMultiplier Float @default(1.0)
+  estimatedFare Float
+  finalFare   Float
   payment_status PaymentStatus @default(PENDING)
 
   createdAt DateTime @default(now())

@@ -1,7 +1,6 @@
 import { prisma } from "../../config/db.config.js";
 import AppError from "../../utils/AppError.js";
-import { uploadBufferToCloudinary } from "../../utils/cloudinary.js";
-import cloudinary from "../../utils/cloudinary.js"
+import { uploadBufferToCloudinary, deleteFromCloudinary } from "../../utils/cloudinary.js";
 
 export const getRiderProfileService = async (userID) => {
   const profile = await prisma.riderProfile.findUnique({
@@ -18,7 +17,6 @@ export const getRiderProfileService = async (userID) => {
 };
 
 export const updateAvailabilityService = async (userID, isAvailable) => {
-  const {isAvailable} = req.body;
   if(typeof isAvailable !== "boolean"){
     throw new AppError("isAvailable must be boolean ", 400)
   }
@@ -49,7 +47,7 @@ export const updateAvailabilityService = async (userID, isAvailable) => {
     if (oldPublicIds.length > 0) {
       // We don't necessarily need to 'await' this if we want speed, 
       // but it's cleaner to ensure they are gone.
-      await Promise.all(oldPublicIds.map(id => cloudinary.uploader.destroy(id)));
+      await Promise.all(oldPublicIds.map(id => deleteFromCloudinary(id)));
     }
 
     const [licenseRes, governmentIDRes, vehicleImageRes] = await Promise.all([

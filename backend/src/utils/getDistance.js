@@ -1,7 +1,7 @@
 // utils/getDistance.js
-const getDistance = async (pickup, dropoff) => {
+const getDistance = async (pick_up, drop_off) => {
     const url = `http://router.project-osrm.org/route/v1/driving/
-${pickup.lng},${pickup.lat};${dropoff.lng},${dropoff.lat}?overview=false`
+${pick_up.lng},${pick_up.lat};${drop_off.lng},${drop_off.lat}?overview=false`
 
     const res  = await fetch(url)
     const data = await res.json()

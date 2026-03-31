@@ -10,7 +10,7 @@ import  riderRoute from "./modules/rider/rider.route.js"
 import adminRoute from "./modules/admin/admin.route.js"
 import cookieParser from "cookie-parser";
 import AppError from "./utils/AppError.js";
-import globalMiddleware from "./middleware/errorMiddleware.js";
+import {globalMiddleware} from "./middleware/error.middleware.js";
 
 config();
 connectDB();

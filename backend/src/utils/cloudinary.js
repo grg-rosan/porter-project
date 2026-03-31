@@ -14,7 +14,7 @@ export const uploadToCloudinary = async (filePath, folder) => {
       folder,
       resource_type: "auto",
     });
-    return result.secure_url;
+    return result;
   } catch (error) {
     throw new AppError("File upload failed", 500);
   }
@@ -24,8 +24,15 @@ export const uploadBufferToCloudinary = (buffer, folder) => {
     cloudinary.uploader
       .upload_stream({ folder, resource_type: "auto" }, (error, result) => {
         if (error) reject(new AppError("File upload failed", 500));
-        else resolve(result.secure_url);
+        else resolve(result);
       })
       .end(buffer);
   });
 };
+export const deleteFromCloudinary = async(publicId) => {
+  try{
+    await cloudinary.uploader.destroy(publicId)
+  }catch(error){
+    throw new AppError("File Deletion Failed", 500)
+  }
+}

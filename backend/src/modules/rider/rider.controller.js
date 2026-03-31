@@ -6,7 +6,6 @@ import {
   updateAvailabilityService,
 } from "./rider.service.js";
 import AppError from "../../utils/AppError.js";
-import { prisma } from "../../config/db.config.js";
 
 export const getRiderProfile = asyncHandler(async (req, res) => {
   const profile = await getRiderProfileService(req.user.userID);

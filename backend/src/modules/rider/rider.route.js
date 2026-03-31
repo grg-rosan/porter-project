@@ -1,6 +1,6 @@
 import express from "express"
 import { authMiddleware } from "../auth/auth.middleware.js"
-import { roleMiddleware } from "../../shared/middleware/role.middleware.js"
+import { roleMiddleware } from "../../middleware/role.middleware.js"
 import { getRiderProfile, tripHistory, updateAvailability } from "./rider.controller.js"
 import { uploadRiderDocs } from "../../middleware/upload.middleware.js"
 import { submitDocs } from "./rider.controller.js"

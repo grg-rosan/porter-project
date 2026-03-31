@@ -1,4 +1,4 @@
-const globalMiddleware = (err, req, res, next) => {
+export const globalMiddleware = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.statusCode < 500 ? 'fail' : 'error';
 
