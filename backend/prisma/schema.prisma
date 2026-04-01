@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
 }
 
 datasource db {
@@ -56,6 +56,7 @@ enum NotificationType {
   COMPLAINT
   NEW_RIDER_APPLICATION
 }
+
 enum ComplaintStatus {
   OPEN
   IN_REVIEW
@@ -87,12 +88,12 @@ model FareConfig {
 }
 
 model SurgeConfig {
-  id          Int      @id @default(autoincrement())
-  isActive    Boolean
-  multiplier  Float
-  reason      String?
-  startedAt   DateTime
-  endedAt     DateTime? 
+  id         Int       @id @default(autoincrement())
+  isActive   Boolean
+  multiplier Float
+  reason     String?
+  startedAt  DateTime
+  endedAt    DateTime?
 }
 
 model User {
@@ -115,11 +116,11 @@ model User {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  riderProfile    RiderProfile?
-  customerProfile CustomerProfile?
-  notifications   Notification[]
-  complaintsFiled  Complaint[] @relation("ComplaintsFiled")
-  complaintsAgainst Complaint[] @relation("ComplaintsAgainst")
+  riderProfile      RiderProfile?
+  customerProfile   CustomerProfile?
+  notifications     Notification[]
+  complaintsFiled   Complaint[]      @relation("ComplaintsFiled")
+  complaintsAgainst Complaint[]      @relation("ComplaintsAgainst")
 }
 
 model CustomerProfile {
@@ -192,15 +193,15 @@ model Order {
   customerID String
   riderID    String?
 
-  pickup_address String
-  drop_address   String
-  vehicle_type   VehicleType
-  order_status   OrderStatus   @default(PENDING)
-  weight_kg   Float
-  surgeMultiplier Float @default(1.0)
-  estimatedFare Float
-  finalFare   Float
-  payment_status PaymentStatus @default(PENDING)
+  pickup_address  String
+  drop_address    String
+  vehicle_type    VehicleType
+  order_status    OrderStatus   @default(PENDING)
+  weight_kg       Float
+  surgeMultiplier Float         @default(1.0)
+  estimatedFare   Float
+  finalFare       Float
+  payment_status  PaymentStatus @default(PENDING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -210,7 +211,7 @@ model Order {
 
   payment      Payment[]
   notification Notification[]
-  complaints Complaint[]
+  complaints   Complaint[]
 }
 
 model Payment {

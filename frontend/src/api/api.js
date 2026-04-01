@@ -25,7 +25,6 @@ export const uploadAPI = async (endpoint, formData) => {
     const response = await fetch(`${base_url}/api/${endpoint}`, {
       method: "POST",
       credentials: "include",
-      // ⚠️ do NOT set Content-Type — browser sets it automatically with boundary
       body: formData,
     });
 

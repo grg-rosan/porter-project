@@ -5,14 +5,17 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        try {
-            const stored = localStorage.getItem("user");
-            return stored && stored !== "undefined" ? JSON.parse(stored) : null;
-        } catch {
-            localStorage.removeItem("user");
-            return null;
-        }
-    });
+    try {
+        const stored = localStorage.getItem("user");
+        if (!stored || stored === "undefined") return null;
+        const parsed = JSON.parse(stored);
+        if (parsed?.role) parsed.role = parsed.role.toLowerCase();  // ← normalize old values too
+        return parsed;
+    } catch {
+        localStorage.removeItem("user");
+        return null;
+    }
+});
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -27,6 +30,7 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
             const userData = data.data.user;
+            userData.role = userData.role.toLowerCase()
             setUser(userData);
             localStorage.setItem("user", JSON.stringify(userData));
             return true;

@@ -1,31 +1,38 @@
 import dotenv from "dotenv"
 dotenv.config({ override: false })
-import { PrismaPg } from "@prisma/adapter-pg";
-import pkg from "@prisma/client";
-const { PrismaClient }  = pkg
+import { PrismaClient } from "@prisma/client"
+import { PrismaPg } from "@prisma/adapter-pg"
+import pg from "pg"
 
-const connectionString = `${process.env.DATABASE_URL}`;
-const adapter = new PrismaPg({ connectionString });
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL 
+})
+
+const adapter = new PrismaPg(pool)
+
 const prisma = new PrismaClient({
-  log: [{ emit: "event", level: "query" }],
   adapter,
-});
+  log: [{ emit: "event", level: "query" }],
+})
+
 prisma.$on("query", (e) => {
-  console.log("Query:", e.query);
-  console.log("Params:", e.params);
-  console.log("Duration:", e.duration + "ms");
-});
+  console.log("Query:", e.query)
+  console.log("Params:", e.params)
+  console.log("Duration:", e.duration + "ms")
+})
+
 const connectDB = async () => {
   try {
-    await prisma.$connect();
-    console.log("db connected via prisma");
-     console.log("NODE_ENV:", process.env.NODE_ENV);
+    await prisma.$connect()
+    console.log("DB connected via Prisma")
+    console.log("NODE_ENV:", process.env.NODE_ENV)
   } catch (error) {
-    console.log(`db connection error:${error.message}`);
+    console.error(`DB connection error: ${error.message}`)
   }
-};
-const disconnectDB = async () => {
-  await prisma.$disconnect();
-};
+}
 
-export { prisma, connectDB, disconnectDB };
+const disconnectDB = async () => {
+  await prisma.$disconnect()
+}
+
+export { prisma, connectDB, disconnectDB }
