@@ -21,14 +21,9 @@ router.patch("/availability", updateAvailability)
 router.get("/trips/history",tripHistory)
 
 //documentaion
-router.post("/docs",uploadRiderDocs ,submitDocs)
+router.post("/documents",uploadRiderDocs ,submitDocs)
 //complaints 
 router.post("/complaints",     submitComplaint);
 router.get("/complaints/my",   myComplaints);
 
 export default router
-
-// GET /api/trips/history             // all trips
-// GET /api/trips/history?filter=daily
-// GET /api/trips/history?filter=weekly
-// GET /api/trips/history?filter=monthly

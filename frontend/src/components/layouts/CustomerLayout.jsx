@@ -1,6 +1,6 @@
 // layouts/CustomerLayout.jsx
 import { Outlet } from "react-router-dom";
-import { useCustomerProfile } from "../../hooks/useCustomerProfile";
+import { useCustomerProfile } from "../../hooks/profile/useCustomer";
 import CustomerNavbar from "../../pages/customer/customer-comps/CustomerNavbar";
 const CustomerLayout = () => {
   const { profile, loading, error, refetch } = useCustomerProfile();

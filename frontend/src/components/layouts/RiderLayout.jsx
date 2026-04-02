@@ -1,6 +1,6 @@
 // layouts/RiderLayout.jsx
 import { Outlet } from "react-router-dom";
-import { useRiderProfile } from "../../hooks/useRiderProfile";
+import { useRiderProfile } from "../../hooks/profile/useRiderProfile";
 import RiderNavbar from "../../pages/rider/rider-comps/RiderNavbar";
 const RiderLayout = () => {
   const { profile, loading, refetch } = useRiderProfile();

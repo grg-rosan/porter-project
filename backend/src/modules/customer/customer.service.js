@@ -1,6 +1,5 @@
-import prisma from "../../lib/prisma.js";
-import { AppError } from "../../utils/AppError.js";
-
+import {prisma} from "../../config/db.config.js"
+import AppError from "../../utils/AppError.js"
 /**
  * Get the full customer profile for the authenticated user.
  * Joins CustomerProfile + User (safe fields only — no password).

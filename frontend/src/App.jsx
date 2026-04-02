@@ -15,6 +15,7 @@ import RiderPage      from './pages/rider/RiderPage.jsx'
 import RiderLayout from './components/layouts/RiderLayout.jsx'
 import ProtectedRoute from './routes/ProtectedRoutes'
 import AdminPage      from './pages/admin/AdminPage.jsx'
+import AdminLayout from './components/layouts/AdminLayout.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -44,7 +45,9 @@ const router = createBrowserRouter(
 
       {/* admin */}
       <Route element={<ProtectedRoute allowedRole="admin" />}>
-        <Route path='admin' element={<AdminPage />} />
+        <Route element ={<AdminLayout />}>
+         <Route path='admin' element={<AdminPage />} />
+        </Route>
       </Route>
 
       {/* catch all */}

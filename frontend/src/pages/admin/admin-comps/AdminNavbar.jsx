@@ -1,4 +1,4 @@
-// components/layoutComps/Navbars/AdminNavbar.jsx
+// components/layoutComps/admin-comps/AdminNavbar.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalytics } from "../../../hooks/useAnalystics";
@@ -10,29 +10,38 @@ const Icon = ({ name, size = 20, className = "" }) => (
   </span>
 );
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { icon: "dashboard",     label: "Dashboard",    id: "dashboard"    },
   { icon: "verified_user", label: "Verification", id: "verification" },
   { icon: "gavel",         label: "Complaints",   id: "complaints"   },
   { icon: "analytics",     label: "Analytics",    id: "analytics"    },
 ];
 
-export default function AdminNavbar({ activeSection, onNavigate }) {
-  const { user } = useAuth();                            // FIX: was useAuth (missing call parens)
+/**
+ * AdminNavbar
+ *
+ * Props:
+ *   activeSection  – currently active section id
+ *   onNavigate     – (sectionId: string) => void
+ *   extraNavItems  – optional extra items appended to the nav
+ *                    e.g. [{ icon: "tune", label: "Settings", id: "settings" }]
+ */
+export default function AdminNavbar({ activeSection, onNavigate, extraNavItems = [] }) {
+  const { user }                        = useAuth();
   const { pendingRiders, openComplaints } = useAnalytics();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen]     = useState(false);
+  const navigate                        = useNavigate();
 
-  const BADGES = { verification: pendingRiders, complaints: openComplaints };
+  const NAV_ITEMS = [...BASE_NAV_ITEMS, ...extraNavItems];
+  const BADGES    = { verification: pendingRiders, complaints: openComplaints };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
   };
 
-  // Derive initials for avatar
   const initials = user?.name
-    ?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) ?? "A";
+    ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "A";
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-gray-950 border-b border-gray-800">
@@ -80,19 +89,15 @@ export default function AdminNavbar({ activeSection, onNavigate }) {
             <div className="hidden md:flex items-center gap-2.5 pl-3 border-l border-gray-800">
               <div className="text-right">
                 <p className="text-xs font-semibold text-white leading-none">{user?.name}</p>
-                <p className="text-[10px] text-gray-500 mt-0.5"
-                   style={{ fontFamily: "'DM Mono', monospace" }}>
+                <p className="text-[10px] text-gray-500 mt-0.5" style={{ fontFamily: "'DM Mono', monospace" }}>
                   {user?.role}
                 </p>
               </div>
-              {/* Avatar: initials (no hardcoded letter) */}
               <div className="w-8 h-8 rounded-lg bg-[#F5A623] flex items-center justify-center">
-                <span className="text-gray-950 font-black text-sm"
-                      style={{ fontFamily: "'Syne', sans-serif" }}>
+                <span className="text-gray-950 font-black text-sm" style={{ fontFamily: "'Syne', sans-serif" }}>
                   {initials}
                 </span>
               </div>
-              {/* Logout button — wired up */}
               <button onClick={handleLogout}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-800 transition"
                 title="Logout">
@@ -100,7 +105,7 @@ export default function AdminNavbar({ activeSection, onNavigate }) {
               </button>
             </div>
 
-            <button onClick={() => setMobileOpen(p => !p)}
+            <button onClick={() => setMobileOpen((p) => !p)}
               className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800 transition">
               <Icon name={mobileOpen ? "close" : "menu"} size={20} className="text-gray-400" />
             </button>
