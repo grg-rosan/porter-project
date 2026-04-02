@@ -7,6 +7,7 @@ const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const { user } = useAuth();
     const [isConnected, setIsConnected] = useState(false);
+    const [lastNotification, setLastNotification] = useState(null);
 
     // auto connect/disconnect based on auth state
     useEffect(() => {
@@ -23,8 +24,20 @@ export const SocketProvider = ({ children }) => {
 
         socket.connect();
 
+        socket.on("notification", (data) => {
+            console.log("New notification received:", data);
+            setLastNotification(data);
+            
+            // OPTIONAL: If it's a status update, you might want to 
+            // trigger a global state refresh or show a toast here.
+            if (data.type === "ORDER_ASSIGNED") {
+                // Logic to update the Order Status UI
+            }
+        });
+
         return () => {
             socket.off();
+            socket.off("notification")
             socket.disconnect();
         };
     }, [user]);
@@ -43,7 +56,7 @@ export const SocketProvider = ({ children }) => {
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, isConnected }}>
+        <SocketContext.Provider value={{ socket, isConnected, lastNotification }}>
             {children}
         </SocketContext.Provider>
     );

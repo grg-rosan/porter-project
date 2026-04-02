@@ -1,31 +1,19 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { prisma } from "../src/config/db.config.js";
 
-await prisma.fareConfig.createMany({
-  data: [
-    { vehicleType: "SCOOTER", 
-      baseFare: 30, 
-      perKm: 15, 
-      perKg: 2, 
-      minFare: 80 },
-    { vehicleType: "BIKE", 
-      baseFare: 40, 
-      perKm: 18, 
-      perKg: 2.5, 
-      minFare: 100 },
-    {
-      vehicleType: "MINI_TRUCK",
-      baseFare: 80,
-      perKm: 25,
-      perKg: 3,
-      minFare: 150,
-    },
-    { vehicleType: "VAN", 
-      baseFare: 200, 
-      perKm: 35, 
-      perKg: 5, 
-      minFare: 500 },
-  ],
-});
+async function main() {
+  await prisma.fareConfig.createMany({
+    data: [
+      { vehicleType: "BIKE",       baseFare: 50,  perKm: 15, perKg: 3, minFare: 80  },
+      { vehicleType: "SCOOTER",    baseFare: 60,  perKm: 18, perKg: 4, minFare: 90  },
+      { vehicleType: "VAN",        baseFare: 150, perKm: 40, perKg: 8, minFare: 200 },
+      { vehicleType: "MINI_TRUCK", baseFare: 200, perKm: 55, perKg: 10, minFare: 250 },
+    ],
+    skipDuplicates: true,
+  });
 
-await prisma.$disconnect();
+  console.log("✅ Fare config seeded!");
+}
+
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

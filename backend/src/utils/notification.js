@@ -2,7 +2,7 @@
 import { prisma } from "../config/db.config.js";
 import { getIO }  from "../infrastructure/socket/socket.handler.js";
 
-export const sendNotification = async (userID, type, message, orderID = null) => {
+export const sendNotification = async (userID, type, message, orderID = null,) => {
   // 1. save to DB — user sees it later even if offline
   const notification = await prisma.notification.create({
     data: { userID, type, message, orderID },

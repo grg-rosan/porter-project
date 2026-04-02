@@ -3,13 +3,14 @@ import orderMessageProducer from "./order.producer.js";
 import getDistance from "../../utils/getDistance.js";
 import {calculateFare} from "../../utils/calculateFare.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+import { geoCode } from "../../utils/geocode.js";
 import { sendNotification } from "../../utils/notification.js";
 
 export const estimateFare = asyncHandler(async (req, res) => {
   const { pickup_address, drop_address, weight_kg, vehicle_type } = req.body;
 
-  const pick_up = JSON.parse(pickup_address);
-  const drop_off = JSON.parse(drop_address);
+  const pick_up = await geoCode(pickup_address);
+  const drop_off = await geoCode(drop_address);
 
   const { distance_km, duration_min } = await getDistance(pick_up, drop_off);
 
@@ -19,14 +20,15 @@ export const estimateFare = asyncHandler(async (req, res) => {
     weight_kg: parseFloat(weight_kg),
     vehicle_type,
   });
+  console.log(estimate)
   res.status(200).json({ status: "success", estimate: estimate });
 });
 
 export const order_create = asyncHandler(async (req, res) => {
-  const order = await createOrder({ ...req.body, userID: req.user.userID });
+  const order = await createOrderService({ ...req.body, userID: req.user.userID });
 
   await Promise.allSettled([
-    await orderMessageProducer({
+    orderMessageProducer({
       orderId: order.ID,
       customerId: order.customerID,
       vehicleType: order.vehicle_type,
@@ -35,7 +37,7 @@ export const order_create = asyncHandler(async (req, res) => {
       drop_off: order.drop_address,
       amount: order.total_amount,
     }),
-    await sendNotification(
+    sendNotification(
       req.user.userID,
       "ORDER_PLACED",
       "Your order has been placed successfully",

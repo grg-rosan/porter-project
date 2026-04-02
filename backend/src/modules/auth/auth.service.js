@@ -28,7 +28,7 @@ const registerUser = async (userData) => {
     } catch (error) {
         if (error.code === "P2002") {
             const field  = error.meta?.target?.[0] ?? 'Field';
-            throw new AppError(`${field} already in use`, use)
+            throw new AppError(`${field} already in use`, 400)
         }
         throw error
     }

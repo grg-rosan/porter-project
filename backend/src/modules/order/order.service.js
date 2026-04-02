@@ -1,14 +1,13 @@
 import { prisma } from "../../config/db.config.js";
-import {calculateFare} from "../../utils/calculateFare.js";
+import { calculateFare } from "../../utils/calculateFare.js";
 import getDistance from "../../utils/getDistance.js";
 import AppError from "../../utils/AppError.js";
-import { SURGE_FALLBACK } from "../../config/surge.config.js"
-
-
+import { geoCode } from "../../utils/geocode.js";
+import { SURGE_FALLBACK } from "../../config/surge.config.js";
 
 export const createOrderService = async (orderData) => {
-
-  const { pickup_address, drop_address, weight_kg, vehicle_type, userID } = orderData;
+  const { pickup_address, drop_address, weight_kg, vehicle_type, userID } =
+    orderData;
 
   const customerProfile = await prisma.customerProfile.findUnique({
     where: { userID },
@@ -17,34 +16,36 @@ export const createOrderService = async (orderData) => {
 
   let pickup_loc, drop_off_loc;
   try {
-    pickup_loc = JSON.parse(pickup_address);
-    drop_off_loc   = JSON.parse(drop_address);
+    pickup_loc = await geoCode(pickup_address);
+    drop_off_loc = await geoCode(drop_address);
   } catch {
     throw new AppError("Invalid pickup or drop address format", 400);
   }
 
-  const { distance_km, duration_min } = await getDistance(pickup_loc, drop_off_loc);
+  const { distance_km, duration_min } = await getDistance(
+    pickup_loc,
+    drop_off_loc,
+  );
   const { estimatedFare, surgeMultiplier, finalFare } = await calculateFare({
     distance_km,
     duration_min,
     vehicle_type,
-    weight_kg
+    weight_kg,
   });
 
   return await prisma.order.create({
     data: {
-      customerID:     customerProfile.customerID,
-      pickup_address: JSON.stringify(pickup_loc),  // keep as JSON string in DB
-      drop_address:   JSON.stringify(drop_off_loc),
+      customerID: customerProfile.customerID,
+      pickup_address: JSON.stringify(pickup_loc), // keep as JSON string in DB
+      drop_address: JSON.stringify(drop_off_loc),
       vehicle_type,
       weight_kg,
       estimatedFare,
       surgeMultiplier,
-      finalFare
+      finalFare,
     },
   });
 };
-
 
 export const cancel_Order = async (orderID, userID) => {
   const order = await prisma.order.findUnique({
@@ -84,7 +85,6 @@ export const cancel_Order = async (orderID, userID) => {
   });
 };
 
-
 export const getSurgeMultiplierService = async () => {
   try {
     const config = await prisma.surgeConfig.findUnique({ where: { id: 1 } });
@@ -102,7 +102,6 @@ export const getSurgeMultiplierService = async () => {
     if (ratio >= 2) return 1.5;
     if (ratio >= 1) return 1.2;
     return 1.0;
-
   } catch (err) {
     console.error("Surge calculation failed, using fallback:", err.message);
     return SURGE_FALLBACK.multiplier;
@@ -111,7 +110,10 @@ export const getSurgeMultiplierService = async () => {
 
 export const getSurgeStatusService = async () => {
   try {
-    return await prisma.surgeConfig.findUnique({ where: { id: 1 } }) ?? SURGE_FALLBACK;
+    return (
+      (await prisma.surgeConfig.findUnique({ where: { id: 1 } })) ??
+      SURGE_FALLBACK
+    );
   } catch {
     return SURGE_FALLBACK;
   }
