@@ -2,7 +2,7 @@ import { prisma } from "../../config/db.config.js";
 import { calculateFare } from "../../utils/calculateFare.js";
 import getDistance from "../../utils/getDistance.js";
 import AppError from "../../utils/AppError.js";
-import { geoCode } from "../../utils/geocode.js";
+import {geoCode} from "../../utils/geoCode.js"
 import { SURGE_FALLBACK } from "../../config/surge.config.js";
 
 export const createOrderService = async (orderData) => {

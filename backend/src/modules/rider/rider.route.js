@@ -1,7 +1,7 @@
 import express from "express"
 import { authMiddleware } from "../auth/auth.middleware.js"
 import { roleMiddleware } from "../../middleware/role.middleware.js"
-import { getRiderProfile, tripHistory, updateAvailability } from "./rider.controller.js"
+import { getRiderProfile,updateRiderProfile, tripHistory, updateAvailability } from "./rider.controller.js"
 import { uploadRiderDocs } from "../../middleware/upload.middleware.js"
 import { submitDocs } from "./rider.controller.js"
 import { submitComplaint,myComplaints } from "../complaints/complaints.controller.js"
@@ -13,13 +13,14 @@ router.use(roleMiddleware("RIDER"))
 
 // get rider profile
 router.get("/profile", getRiderProfile)
-// api/rider/profile
+router.patch("/profile", updateRiderProfile)
 
-router.patch("/availability", updateAvailability)
 // api/rider/availability
+router.patch("/availability", updateAvailability)
 
 router.get("/trips/history",tripHistory)
 
+//documentaion
 router.post("/docs",uploadRiderDocs ,submitDocs)
 //complaints 
 router.post("/complaints",     submitComplaint);

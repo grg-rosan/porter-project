@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { getAPI } from "../../api/api";
-import OrderFormComp from "./customerComps/OrderFormComp";
-import OrderStatus from "./customerComps/OrderStatus";
-import TrackingMap from "../../components/sharedComps/Map";
+import OrderFormComp from "./customer-comps/OrderFormComp";
+import OrderStatus from "./customer-comps/OrderStatus";
+import TrackingMap from "../../components/map-comp/Map";
 import { useOrderSocket } from "../../hooks/useOrderSocket";
 import { useGetCoords } from "../../hooks/getCoords";
 
@@ -64,7 +64,8 @@ const CustomerPage = () => {
       <div className="absolute inset-0 z-0">
         <TrackingMap
           customerLocation={customerLocation}
-          riderLocation={riderLocation}
+          riderLocation={riderLocation}  pickupLocation={currentOrder?.pickupLoc}   
+  dropLocation={currentOrder?.dropLoc} 
         />
       </div>
 

@@ -5,122 +5,75 @@ export const useOrderSocket = (role, handlers = {}) => {
   const { socket } = useSocket();
   const handlersRef = useRef(handlers);
 
-  // keep ref in sync with latest handlers without triggering re-renders
   useEffect(() => {
     handlersRef.current = handlers;
-  }); // ← no dep array, runs every render to stay fresh
+  });
 
   useEffect(() => {
     if (!socket) return;
 
     if (role === "rider") {
-      socket.on("order:new", (data) => handlersRef.current.onNewOrder?.(data));
-      socket.on("order:cancelled", (data) =>
-        handlersRef.current.onOrderCancelled?.(data),
-      );
+      socket.on("order:new",        (data) => handlersRef.current.onNewOrder?.(data));
+      socket.on("order:taken",      (data) => handlersRef.current.onOrderTaken?.(data));
+      socket.on("order:cancelled",  (data) => handlersRef.current.onOrderCancelled?.(data));
+      socket.on("order:accept_confirmed", (data) => handlersRef.current.onAcceptConfirmed?.(data));
     }
 
     if (role === "customer") {
-      socket.on("rider:location", (data) =>
-        handlersRef.current.onRiderLocation?.(data),
-      );
-      // ✅ This maps the generic "notification" event to your specific UI handlers
-      // Inside useOrderSocket.js role === "customer" block
-      socket.on("notification", (data) => {
-        if (data.type === "ORDER_ASSIGNED") {
-          // We call the handler and pass the riderID we just added to the backend emit
-          handlersRef.current.onOrderAccepted?.({
-            orderID: data.orderID,
-            riderID: data.riderID, // ✅ This will now contain riderProfile.riderID
-            message: data.message,
-          });
-        }
-
-        if (data.type.startsWith("ORDER_") && data.type !== "ORDER_PLACED") {
-          const statusMapping = {
-            ORDER_ASSIGNED: "accepted",
-            ORDER_ARRIVED: "arrived",
-            ORDER_PICKED_UP: "picked_up",
-            ORDER_DELIVERED: "delivered",
-            ORDER_CANCELLED: "cancelled",
-          };
-
-          handlersRef.current.onJobStatus?.({
-            status: statusMapping[data.type] || "accepted",
-            orderID: data.orderID,
-          });
-        }
-      });
-      socket.on("order:accepted", (data) =>
-        handlersRef.current.onOrderAccepted?.(data),
-      );
-      socket.on("order:rejected", (data) =>
-        handlersRef.current.onOrderRejected?.(data),
-      );
-      socket.on("job:status", (data) =>
-        handlersRef.current.onJobStatus?.(data),
-      );
+      socket.on("order:accepted",      (data) => handlersRef.current.onOrderAccepted?.(data));
+      socket.on("order:rejected",      (data) => handlersRef.current.onOrderRejected?.(data));
+      socket.on("order:cancelled",     (data) => handlersRef.current.onOrderCancelled?.(data));
+      socket.on("order:status:update", (data) => handlersRef.current.onJobStatus?.(data));       // ✅ matches backend
+      socket.on("rider:location:update",(data) => handlersRef.current.onRiderLocation?.(data)); // ✅ matches backend
     }
 
     return () => {
-      socket.off("order:new");
-      socket.off("order:cancelled");
-      socket.off("rider:location");
-      socket.off("order:accepted");
-      socket.off("order:rejected");
-      socket.off("job:status");
-      socket.off("notification");
+      if (role === "rider") {
+        socket.off("order:new");
+        socket.off("order:taken");
+        socket.off("order:cancelled");
+        socket.off("order:accept_confirmed");
+      }
+      if (role === "customer") {
+        socket.off("order:accepted");
+        socket.off("order:rejected");
+        socket.off("order:cancelled");
+        socket.off("order:status:update");   // ✅
+        socket.off("rider:location:update"); // ✅
+      }
     };
-  }, [socket, role]); // ← stable deps only, handlers intentionally excluded
+  }, [socket, role]);
 
-  const acceptOrder = useCallback(
-    (orderID, customerID) => {
-      socket.emit("order:accept", { orderID, customerID });
-    },
-    [socket],
-  );
+  // ── emitters ──────────────────────────────────────────────────
 
-  const rejectOrder = useCallback(
-    (orderID, customerID) => {
-      socket.emit("order:reject", { orderID, customerID });
-    },
-    [socket],
-  );
+  const acceptOrder = useCallback((orderID) => {
+    // ✅ no customerID — backend gets it from DB
+    socket.emit("order:accept", { orderID });
+  }, [socket]);
 
-  const updateJobStatus = useCallback(
-    (orderID, customerID, status) => {
-      socket.emit("job:status", { orderID, customerID, status });
-    },
-    [socket],
-  );
+  const rejectOrder = useCallback((orderID) => {
+    // ✅ no customerID — backend gets it from DB
+    socket.emit("order:reject", { orderID });
+  }, [socket]);
 
-  const emitLocation = useCallback(
-    (location, customerID, orderID) => {
-      socket.emit("rider:location", { ...location, customerID, orderID });
-    },
-    [socket],
-  );
+  const updateJobStatus = useCallback((orderID, status) => {
+    // ✅ no customerID — backend gets it from DB
+    socket.emit("job:status", { orderID, status });
+  }, [socket]);
 
-  const setAvailability = useCallback(
-    (isAvailable) => {
-      socket.emit(isAvailable ? "rider:online" : "rider:offline");
-    },
-    [socket],
-  );
+  const emitLocation = useCallback((location, orderID) => {
+    // ✅ no customerID — backend gets it from DB via orderID
+    socket.emit("rider:location", { ...location, orderID });
+  }, [socket]);
 
-  const placeOrder = useCallback(
-    (orderData) => {
-      socket.emit("order:place", orderData);
-    },
-    [socket],
-  );
+  const setAvailability = useCallback((isAvailable) => {
+    socket.emit(isAvailable ? "rider:online" : "rider:offline");
+  }, [socket]);
 
-  const cancelOrder = useCallback(
-    (orderID, riderID) => {
-      socket.emit("order:cancel", { orderID, riderID });
-    },
-    [socket],
-  );
+  const cancelOrder = useCallback((orderID) => {
+    // ✅ no riderID — backend gets it from DB
+    socket.emit("order:cancel", { orderID });
+  }, [socket]);
 
   return {
     acceptOrder,
@@ -128,7 +81,6 @@ export const useOrderSocket = (role, handlers = {}) => {
     updateJobStatus,
     emitLocation,
     setAvailability,
-    placeOrder,
     cancelOrder,
   };
 };

@@ -1,6 +1,6 @@
 // components/VerificationModal.jsx
 import { useEffect } from "react";
-import RiderDocumentUpload from "../pages/rider/riderComps/RiderDocumentUpload";
+import RiderDocumentUpload from "../pages/rider/rider-comps/RiderDocumentUpload";
 export default function VerificationModal({ open, onClose }) {
   // Lock body scroll while open
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function VerificationModal({ open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-100 flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
       {/* Backdrop */}

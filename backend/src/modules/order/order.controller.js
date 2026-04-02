@@ -3,7 +3,7 @@ import orderMessageProducer from "./order.producer.js";
 import getDistance from "../../utils/getDistance.js";
 import {calculateFare} from "../../utils/calculateFare.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-import { geoCode } from "../../utils/geocode.js";
+import {geoCode} from "../../utils/geoCode.js"
 import { sendNotification } from "../../utils/notification.js";
 
 export const estimateFare = asyncHandler(async (req, res) => {
@@ -35,7 +35,7 @@ export const order_create = asyncHandler(async (req, res) => {
       riderId: order.riderID, // assigned rider
       pick_up: order.pickup_address,
       drop_off: order.drop_address,
-      amount: order.total_amount,
+      amount: order.finalFare,
     }),
     sendNotification(
       req.user.userID,

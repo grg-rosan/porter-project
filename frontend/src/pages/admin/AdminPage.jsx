@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { RidersProvider } from "../../context/RidersContext";
 import { ComplaintsProvider } from "../../context/ComplaintsContext";
-import AdminNavbar from "../../components/layoutComps/Navbars/AdminNavbar";
-import AnalyticsPanel from "./adminComps/AnalyticsPanel";
-import RiderVerificationPanel from "./adminComps/RiderVerificationPanel";
-import ComplaintsPanel from "./adminComps/ComplaintsPanel";
+import AdminNavbar from "./admin-comps/AdminNavbar";
+import AnalyticsPanel from "./admin-comps/AnalyticsPanel";
+import RiderVerificationPanel from "./admin-comps/RiderVerificationPanel";
+import ComplaintsPanel from "./admin-comps/ComplaintsPanel";
 
 const SECTIONS = {
   dashboard:    <AnalyticsPanel />,

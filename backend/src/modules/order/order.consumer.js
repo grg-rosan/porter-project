@@ -6,8 +6,8 @@ export const startOrderConsumer = (io) => {
     io.to(`riders:${message.vehicleType}`).emit("order:new",{
         orderID: message.orderId,
                 customerID: message.customerId,
-                pickup: message.pickup,
-                dropoff: message.dropoff,
+                pickup: message.pick_up,
+                dropoff: message.drop_off,
                 amount: message.amount
     })
   });

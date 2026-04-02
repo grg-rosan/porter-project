@@ -9,49 +9,54 @@ export const SocketProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [lastNotification, setLastNotification] = useState(null);
 
-    // auto connect/disconnect based on auth state
+    // ── connection + room join ────────────────────────────────────
     useEffect(() => {
         if (!user?.role) {
-            socket.off();
             socket.disconnect();
             return;
         }
 
-        socket.once("connect", () => {
+        const handleNotification = (data) => {
+            console.log("New notification received:", data);
+            setLastNotification(data);
+        };
+
+        const handleConnect = () => {
             socket.emit("user:join", { role: user.role.toUpperCase() });
             console.log("emitted user:join:", user.role);
-        });
+        };
+
+        socket.on("connect", handleConnect);
+        socket.on("notification", handleNotification);
 
         socket.connect();
 
-        socket.on("notification", (data) => {
-            console.log("New notification received:", data);
-            setLastNotification(data);
-            
-            // OPTIONAL: If it's a status update, you might want to 
-            // trigger a global state refresh or show a toast here.
-            if (data.type === "ORDER_ASSIGNED") {
-                // Logic to update the Order Status UI
-            }
-        });
+        // already connected (e.g. StrictMode remount) — emit immediately
+        if (socket.connected) {
+            socket.emit("user:join", { role: user.role.toUpperCase() });
+        }
 
         return () => {
-            socket.off();
-            socket.off("notification")
-            socket.disconnect();
+            socket.off("connect", handleConnect);
+            socket.off("notification", handleNotification);
         };
     }, [user]);
 
-    // status listeners
+    // ── connection status ─────────────────────────────────────────
     useEffect(() => {
-        socket.on("connect", () => setIsConnected(true));
-        socket.on("disconnect", () => setIsConnected(false));
-        socket.on("connect_error", (err) => console.error("socket error:", err.message));
+        const handleConnect    = () => setIsConnected(true);
+        const handleDisconnect = () => setIsConnected(false);
+        const handleError      = (err) => console.error("socket error:", err.message);
+
+        // ✅ named functions so off() only removes these specific handlers
+        socket.on("connect",       handleConnect);
+        socket.on("disconnect",    handleDisconnect);
+        socket.on("connect_error", handleError);
 
         return () => {
-            socket.off("connect");
-            socket.off("disconnect");
-            socket.off("connect_error");
+            socket.off("connect",       handleConnect);    // ✅ removes only this one
+            socket.off("disconnect",    handleDisconnect);
+            socket.off("connect_error", handleError);
         };
     }, []);
 

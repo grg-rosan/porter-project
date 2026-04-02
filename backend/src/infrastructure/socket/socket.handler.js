@@ -3,7 +3,7 @@ import cookie from "cookie";
 import { prisma } from "../../config/db.config.js";
 import { sendNotification } from "../../utils/notification.js";
 
-let io; // ✅ module-level
+let io;
 
 export const getIO = () => {
   if (!io) throw new Error("Socket not initialized");
@@ -11,7 +11,7 @@ export const getIO = () => {
 };
 
 export const initSocketHandlers = (socketIO) => {
-  io = socketIO; // ✅ store reference
+  io = socketIO;
 
   io.use(async (socket, next) => {
     try {
@@ -37,6 +37,7 @@ export const initSocketHandlers = (socketIO) => {
   io.on("connection", (socket) => {
     console.log(`Connected: ${socket.user.name} | ${socket.userID}`);
 
+    // ── user:join ─────────────────────────────────────────────────
     socket.on("user:join", async ({ role }) => {
       socket.join(`user:${socket.userID}`);
       console.log(`👤 ${socket.user.name} joined room: user:${socket.userID}`);
@@ -48,11 +49,13 @@ export const initSocketHandlers = (socketIO) => {
         });
         if (riderProfile?.isAvailable) {
           socket.join("online_riders");
-          socket.join(`riders:${riderProfile.vehicle_type}`); // ✅ clean room name
+          socket.join(`riders:${riderProfile.vehicle_type}`);
+          console.log(`🛵 ${socket.user.name} joined riders:${riderProfile.vehicle_type}`);
         }
       }
     });
 
+    // ── rider:online ──────────────────────────────────────────────
     socket.on("rider:online", async () => {
       try {
         const riderProfile = await prisma.riderProfile.findUnique({
@@ -61,13 +64,15 @@ export const initSocketHandlers = (socketIO) => {
         });
         if (riderProfile) {
           socket.join("online_riders");
-          socket.join(`riders:${riderProfile.vehicle_type}`); // ✅ fixed
+          socket.join(`riders:${riderProfile.vehicle_type}`);
+          console.log(`🟢 ${socket.user.name} is online → riders:${riderProfile.vehicle_type}`);
         }
       } catch (err) {
         console.error("rider:online error:", err.message);
       }
     });
 
+    // ── rider:offline ─────────────────────────────────────────────
     socket.on("rider:offline", async () => {
       try {
         const riderProfile = await prisma.riderProfile.findUnique({
@@ -77,33 +82,37 @@ export const initSocketHandlers = (socketIO) => {
         if (riderProfile) {
           socket.leave("online_riders");
           socket.leave(`riders:${riderProfile.vehicle_type}`);
+          console.log(`⚫ ${socket.user.name} is offline`);
         }
       } catch (err) {
         console.error("rider:offline error:", err.message);
       }
     });
 
-    //orders status sockets
-    socket.on("order:accept", async ({ orderID, customerID }) => {
+    // ── order:accept ──────────────────────────────────────────────
+    socket.on("order:accept", async ({ orderID }) => {
       try {
         const riderProfile = await prisma.riderProfile.findUnique({
           where: { userID: socket.userID },
           select: { riderID: true, vehicle_type: true },
         });
         if (!riderProfile)
-          return socket.emit("error", { message: "rider Profile not found" });
+          return socket.emit("error", { message: "Rider profile not found" });
+
+        // atomic update — prevents race condition
         const result = await prisma.order.updateMany({
           where: { ID: orderID, riderID: null, order_status: "PENDING" },
           data: { order_status: "ASSIGNED", riderID: riderProfile.riderID },
         });
 
         if (result.count === 0) {
-          socket.emit("order:already_taken", {
+          return socket.emit("order:already_taken", {
             orderID,
             message: "Sorry, order was already accepted by another rider",
           });
-          return;
         }
+
+        // fetch order with customer's userID from DB — never trust frontend
         const order = await prisma.order.findUnique({
           where: { ID: orderID },
           include: {
@@ -112,69 +121,106 @@ export const initSocketHandlers = (socketIO) => {
         });
         if (!order) return socket.emit("error", { message: "Order not found" });
 
+        const customerUserID = order.customerProfile.userID; // ✅ from DB
+
         socket.emit("order:accept_confirmed", {
           orderID,
-          order,
           message: "You have accepted the order",
         });
-        io.to(`user:${customerID}`).emit("order:accepted", {
+
+        // ✅ use customerUserID from DB, not from frontend payload
+        io.to(`user:${customerUserID}`).emit("order:accepted", {
           orderID,
-          riderID: socket.userID,
+          riderUserID: socket.userID,
           message: "Your order has been accepted",
         });
 
-        // ✅ persist notification to DB as well
         await sendNotification(
-          order.customerProfile.userID,
+          customerUserID,
           "ORDER_ASSIGNED",
           "A rider has been assigned to your order",
           orderID,
         );
-        socket.leave("online_riders");
-        socket.leave(`riders:${riderProfile.vehicle_type}`);
-        socket.join(`order:${orderID}`);
 
+        // notify other riders this order is gone
         io.to(`riders:${riderProfile.vehicle_type}`).emit("order:taken", {
           orderID,
           message: "Order taken by another rider",
         });
+
+        socket.leave("online_riders");
+        socket.leave(`riders:${riderProfile.vehicle_type}`);
+        socket.join(`order:${orderID}`);
       } catch (err) {
         console.error("order:accept error:", err.message);
         socket.emit("error", { message: "Failed to accept order" });
       }
     });
 
-    socket.on("order:reject", ({ orderID, customerID }) => {
-      io.to(`user:${customerID}`).emit("order:rejected", {
-        orderID,
-        message: "Rider rejected the order, finding another rider...",
-      });
+    // ── order:reject ──────────────────────────────────────────────
+    socket.on("order:reject", async ({ orderID }) => {
+      try {
+        // fetch customerUserID from DB
+        const order = await prisma.order.findUnique({
+          where: { ID: orderID },
+          include: { customerProfile: { select: { userID: true } } },
+        });
+        if (!order) return;
+
+        io.to(`user:${order.customerProfile.userID}`).emit("order:rejected", {
+          orderID,
+          message: "Rider rejected the order, finding another rider...",
+        });
+      } catch (err) {
+        console.error("order:reject error:", err.message);
+      }
     });
 
-    socket.on("rider:location", ({ lat, lng, customerID, orderID }) => {
-      io.to(`user:${customerID}`).emit("rider:location:update", {
-        lat,
-        lng,
-        orderID,
-      });
+    // ── rider:location ────────────────────────────────────────────
+    socket.on("rider:location", async ({ lat, lng, orderID }) => {
+      try {
+        // fetch customerUserID from DB via order
+        const order = await prisma.order.findUnique({
+          where: { ID: orderID },
+          include: { customerProfile: { select: { userID: true } } },
+        });
+        if (!order) return;
+
+        io.to(`user:${order.customerProfile.userID}`).emit("rider:location:update", {
+          lat,
+          lng,
+          orderID,
+        });
+      } catch (err) {
+        console.error("rider:location error:", err.message);
+      }
     });
 
-    socket.on("job:status", async ({ orderID, customerID, status }) => {
+    // ── job:status ────────────────────────────────────────────────
+    socket.on("job:status", async ({ orderID, status }) => {
       try {
         await prisma.order.update({
           where: { ID: orderID },
           data: { order_status: status.toUpperCase() },
         });
 
-        io.to(`user:${customerID}`).emit("order:status:update", {
+        // fetch customerUserID from DB
+        const order = await prisma.order.findUnique({
+          where: { ID: orderID },
+          include: { customerProfile: { select: { userID: true } } },
+        });
+        if (!order) return;
+
+        const customerUserID = order.customerProfile.userID; // ✅ from DB
+
+        io.to(`user:${customerUserID}`).emit("order:status:update", {
           orderID,
           status,
           message: getStatusMessage(status),
         });
 
-        // ✅ persist notification to DB
         await sendNotification(
-          customerID,
+          customerUserID,
           `ORDER_${status.toUpperCase()}`,
           getStatusMessage(status),
           orderID,
@@ -185,8 +231,10 @@ export const initSocketHandlers = (socketIO) => {
             where: { userID: socket.userID },
             select: { vehicle_type: true },
           });
-          socket.join("online_riders");
-          socket.join(`riders:${riderProfile.vehicle_type}`);
+          if (riderProfile) {
+            socket.join("online_riders");
+            socket.join(`riders:${riderProfile.vehicle_type}`);
+          }
           socket.leave(`order:${orderID}`);
         }
       } catch (err) {
@@ -195,20 +243,30 @@ export const initSocketHandlers = (socketIO) => {
       }
     });
 
-    socket.on("order:cancel", async ({ orderID, riderID }) => {
+    // ── order:cancel ──────────────────────────────────────────────
+    socket.on("order:cancel", async ({ orderID }) => {
       try {
+        const order = await prisma.order.findUnique({
+          where: { ID: orderID },
+          include: {
+            riderProfile: { select: { userID: true } },  // ✅ get rider's userID
+          },
+        });
+        if (!order) return;
+
         await prisma.order.update({
           where: { ID: orderID },
           data: { order_status: "CANCELLED" },
         });
-        if (riderID) {
-          io.to(`user:${riderID}`).emit("order:cancelled", {
+
+        if (order.riderProfile?.userID) {
+          const riderUserID = order.riderProfile.userID; // ✅ userID not riderID
+          io.to(`user:${riderUserID}`).emit("order:cancelled", {
             orderID,
             message: "Customer cancelled the order",
           });
-          // ✅ persist notification
           await sendNotification(
-            riderID,
+            riderUserID,
             "ORDER_CANCELLED",
             "Customer cancelled the order",
             orderID,
@@ -220,6 +278,7 @@ export const initSocketHandlers = (socketIO) => {
       }
     });
 
+    // ── chat:message ──────────────────────────────────────────────
     socket.on("chat:message", ({ orderID, toUserID, message }) => {
       io.to(`user:${toUserID}`).emit("chat:message", {
         from: socket.userID,
@@ -229,17 +288,19 @@ export const initSocketHandlers = (socketIO) => {
       });
     });
 
+    // ── disconnect ────────────────────────────────────────────────
     socket.on("disconnect", () => {
-      console.log(`❌ Disconnected: ${socket.userID}`);
+      console.log(`❌ Disconnected: ${socket.user.name} | ${socket.userID}`);
     });
   });
 };
 
 const getStatusMessage = (status) => {
   const messages = {
-    arrived: "Your rider has arrived at pickup location",
+    arrived:   "Your rider has arrived at pickup location",
     picked_up: "Your order has been picked up",
     delivered: "Your order has been delivered",
+    cancelled: "Your order has been cancelled",
   };
   return messages[status] || "Status updated";
 };
